@@ -1,0 +1,11 @@
+# Pi face-recognition scanner runtime deps.
+# Install on the Pi with:
+#   pip install -r requirements.txt
+#
+# Note: face_recognition needs dlib, which needs CMake + a few
+# system libs. See README.md for the full apt-get list.
+face_recognition>=1.3.0
+numpy>=1.24
+opencv-python-headless>=4.8
+requests>=2.31
+python-dotenv>=1.0
