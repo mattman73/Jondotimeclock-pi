@@ -39,25 +39,59 @@ It doesn't:
 
 ```bash
 sudo apt update
-sudo apt install -y python3-venv python3-pip cmake build-essential \
+sudo apt install -y python3-venv python3-pip python3-dev \
+                    cmake build-essential \
                     libopenblas-dev liblapack-dev libjpeg-dev \
-                    libv4l-dev libsm6 libxext6 libxrender1
-cd /home/pi
-git clone <your repo>  # or copy the dashboard/pi folder here
+                    libv4l-dev v4l-utils \
+                    libsm6 libxext6 libxrender1 libgl1 \
+                    python3-picamera2 python3-numpy \
+                    git
+cd ~
+git clone <your repo>
 cd <project>/dashboard/pi
-python3 -m venv venv
+
+# IMPORTANT: --system-site-packages so picamera2 (apt-installed)
+# is visible inside the venv. Without this, the CSI camera path
+# won't work.
+python3 -m venv --system-site-packages venv
 source venv/bin/activate
-pip install -r requirements.txt
+pip install --upgrade pip wheel
+
+# Pre-built dlib (no compile). If this fails for your combo, see
+# the "dlib install" troubleshooting section below.
+pip install dlib-bin
+
+# face_recognition without its own dlib dependency check (dlib-bin
+# already provides the dlib module — pip just doesn't know that).
+pip install --no-deps face_recognition face_recognition_models
+pip install Click Pillow opencv-python-headless requests python-dotenv
+
 cp .env.example .env
 # edit .env: set BASE_URL and API_TOKEN
 ```
 
-`pip install face_recognition` will compile dlib — that takes
-~15–20 minutes on a Pi 4. Don't worry about it.
-
-To check the camera works:
+To check the camera works (CSI):
 ```bash
-python -c "import cv2; cap=cv2.VideoCapture(0); ok,f=cap.read(); print('frame', f.shape if ok else 'FAILED')"
+rpicam-hello --timeout 2000   # 2-second preview, needs a screen
+rpicam-still -o test.jpg      # capture a still, works headless
+```
+
+To check the camera works (USB):
+```bash
+ls /dev/video*
+python -c "import cv2; cap=cv2.VideoCapture(0); ok,f=cap.read(); print('frame', f.shape if ok else 'FAILED'); cap.release()"
+```
+
+To verify the scanner's view of the camera (CSI or USB):
+```bash
+python -c "
+from camera import CameraSource
+cam = CameraSource()
+print('kind:', cam.kind)
+frame = cam.read()
+print('frame:', frame.shape if frame is not None else 'None')
+cam.close()
+"
 ```
 
 ## Running
