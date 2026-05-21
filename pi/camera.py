@@ -54,8 +54,13 @@ class CameraSource:
     def _init_csi(self, width, height):
         from picamera2 import Picamera2  # apt: python3-picamera2
         self._backend = Picamera2()
+        # picamera2's format names are back-to-front: the "BGR888"
+        # format actually delivers the numpy array in R,G,B order,
+        # which is what face_recognition and the JPEG encoder expect.
+        # Using "RGB888" here gives a B,G,R array, which makes skin
+        # tones look blue in the kiosk camera preview.
         config = self._backend.create_preview_configuration(
-            main={"size": (int(width), int(height)), "format": "RGB888"}
+            main={"size": (int(width), int(height)), "format": "BGR888"}
         )
         self._backend.configure(config)
         self._backend.start()
@@ -80,7 +85,8 @@ class CameraSource:
         """Return an HxWx3 numpy array in RGB, or None if the read failed."""
         if self.kind == "csi":
             frame = self._backend.capture_array()
-            # picamera2 with format RGB888 already returns RGB.
+            # Configured with "BGR888", which picamera2 delivers as an
+            # R,G,B-ordered array (see _init_csi) — already RGB.
             return frame
         else:
             ok, frame = self._backend.read()
