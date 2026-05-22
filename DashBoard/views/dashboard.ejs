@@ -1,0 +1,124 @@
+<%- include('partials/head') %>
+<header class="page-head">
+    <h1>Today &mdash; <%= today %></h1>
+    <div class="counters">
+        <div class="counter"><span class="num"><%= counts.in %></span><span class="lbl">In</span></div>
+        <div class="counter"><span class="num"><%= counts.onBreak %></span><span class="lbl">On break</span></div>
+        <div class="counter"><span class="num"><%= counts.out %></span><span class="lbl">Out</span></div>
+        <div class="counter"><span class="num"><%= counts.notYet %></span><span class="lbl">Not yet</span></div>
+        <div class="counter <%= counts.away ? '' : 'muted' %>"><span class="num"><%= counts.away %></span><span class="lbl">Away</span></div>
+        <div class="counter <%= counts.late ? 'counter-alert' : '' %>"><span class="num"><%= counts.late %></span><span class="lbl">Late alerts</span></div>
+    </div>
+</header>
+
+<% if (todayHoliday) { %>
+<section class="card" style="background:#fef3c7; border-color:#fbbf24;">
+    <strong>Today is a non-working day: <%= todayHoliday %>.</strong>
+    Late-arrival alerts are suppressed.
+</section>
+<% } %>
+
+<section class="card">
+    <h2>Staff status</h2>
+    <table class="data">
+        <thead>
+            <tr>
+                <th>Employee</th>
+                <th>Scheduled</th>
+                <th>First clock-in</th>
+                <th>Status</th>
+                <th>Late by</th>
+                <th>Alert</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (!rows.length) { %>
+                <tr><td colspan="6" class="muted">No active employees configured.</td></tr>
+            <% } %>
+            <% rows.forEach(function(r){ %>
+            <tr class="<%= r.alert ? 'row-alert' : '' %>">
+                <td><strong><%= r.displayname %></strong><br><span class="muted small"><%= r.empfullname %></span></td>
+                <td><%= r.scheduled ? r.shift_start + ' – ' + r.shift_end : '<span class="muted">—</span>' %></td>
+                <td><%= r.firstIn || '<span class="muted">—</span>' %></td>
+                <td><span class="badge badge-<%= r.statusClass %>"><%= r.status %></span></td>
+                <td><%= r.minutesLate ? r.minutesLate + ' min' : '' %></td>
+                <td>
+                    <% if (r.alert) { %>
+                        <span class="badge badge-bad">LATE</span>
+                        <form method="post" action="/dashboard/alerts/<%= r.alert.id || '' %>/resolve" style="display:inline">
+                            <button class="btn-small" type="submit">Mark resolved</button>
+                        </form>
+                    <% } %>
+                </td>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</section>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+
+<section class="card">
+    <h2>Team away today</h2>
+    <% if (!awayToday.length) { %>
+        <p class="muted">Nobody on approved leave today.</p>
+    <% } else { %>
+        <ul style="list-style:none; padding:0; margin:0;">
+        <% awayToday.forEach(function(a){ %>
+            <li style="padding:8px 0; border-bottom:1px solid var(--border);">
+                <strong><%= a.displayname || a.empfullname %></strong>
+                &mdash;
+                <% var cls = a.request_type === 'sick' ? 'badge-bad' :
+                             a.request_type === 'holiday' ? 'badge-good' :
+                             'badge-warn'; %>
+                <span class="badge <%= cls %>"><%= a.request_type %></span>
+                <br>
+                <span class="muted small">
+                    <%= a.start_datetime %> &rarr; <%= a.end_datetime %>
+                </span>
+            </li>
+        <% }) %>
+        </ul>
+    <% } %>
+</section>
+
+<section class="card">
+    <h2>Upcoming approved leave (next 14 days)</h2>
+    <% if (!upcoming.length) { %>
+        <p class="muted">Nothing approved in the next two weeks.</p>
+    <% } else { %>
+        <ul style="list-style:none; padding:0; margin:0;">
+        <% upcoming.forEach(function(a){ %>
+            <li style="padding:8px 0; border-bottom:1px solid var(--border);">
+                <strong><%= a.displayname || a.empfullname %></strong>
+                &mdash;
+                <span class="badge badge-muted"><%= a.request_type %></span>
+                <br>
+                <span class="muted small">
+                    <%= a.start_datetime %> &rarr; <%= a.end_datetime %>
+                </span>
+            </li>
+        <% }) %>
+        </ul>
+        <p class="muted small" style="margin-top:10px;">
+            <a href="/timeoff/calendar">View full calendar &rarr;</a>
+        </p>
+    <% } %>
+</section>
+
+</div>
+
+<section class="card">
+    <h2>Recent activity</h2>
+    <% if (!recent.length) { %>
+        <p class="muted">No clock-ins yet today.</p>
+    <% } else { %>
+        <ul class="feed">
+        <% recent.forEach(function(p){ %>
+            <li><span class="when"><%= p.when %></span> <strong><%= p.fullname %></strong> &mdash; <%= p.inout %></li>
+        <% }) %>
+        </ul>
+    <% } %>
+</section>
+
+<%- include('partials/foot') %>

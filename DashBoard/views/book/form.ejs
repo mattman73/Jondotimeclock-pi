@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/static/css/kiosk.css">
+    <style>
+        .book-card { max-width: 520px; }
+        .book-card select,
+        .book-card input[type="date"] {
+            width: 100%;
+            padding: 12px 14px;
+            margin-top: 6px;
+            font-size: 18px;
+            border: 1px solid var(--jondo-grey-light);
+            border-radius: 8px;
+            color: var(--jondo-black);
+            background: #fff;
+        }
+        .book-card fieldset {
+            border: 1px solid var(--jondo-grey-light);
+            border-radius: 8px;
+            padding: 8px 14px 12px;
+            margin-top: 16px;
+        }
+        .book-card fieldset legend {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--jondo-grey);
+            padding: 0 6px;
+        }
+        .book-card .opt {
+            display: block;
+            font-weight: normal;
+            margin-top: 8px;
+            font-size: 17px;
+        }
+        .book-card .opt input { margin-right: 8px; }
+        .book-card .dates { margin-top: 14px; }
+    </style>
+</head>
+<body class="kiosk">
+<header class="kiosk-head">
+    <div class="brand">
+        <img src="/static/img/jondo-logo.png" alt="Jondo" class="brand-logo">
+        <span class="brand-text">Time Clock</span>
+    </div>
+</header>
+<main class="kiosk-main centered">
+    <div class="pw-card book-card">
+        <h1>Book time off</h1>
+        <p class="hint">
+            Booking for <strong><%= emp.displayname %></strong> &mdash;
+            not you? <a href="/book">start over</a>.
+        </p>
+        <% if (flash) { %><div class="kiosk-flash err"><%= flash %></div><% } %>
+        <p class="hint">
+            Holiday remaining this year:
+            <strong><%= allowance.remainingDays %> days</strong>
+            (<%= allowance.remaining.toFixed(1) %> hours)
+        </p>
+
+        <form method="post" action="/book/submit" autocomplete="off">
+            <label>Type of leave
+                <select name="request_type">
+                    <% types.forEach(function (ty) { %>
+                        <option value="<%= ty %>"
+                            <%= (form && form.request_type === ty) ? 'selected' : '' %>>
+                            <%= ty.charAt(0).toUpperCase() + ty.slice(1) %>
+                        </option>
+                    <% }); %>
+                </select>
+            </label>
+
+            <% var dur = (form && form.duration) ? form.duration : 'half'; %>
+            <fieldset>
+                <legend>How long?</legend>
+                <label class="opt">
+                    <input type="radio" name="duration" value="half"
+                           <%= dur === 'half' ? 'checked' : '' %>>
+                    Half day
+                </label>
+                <label class="opt">
+                    <input type="radio" name="duration" value="full"
+                           <%= dur === 'full' ? 'checked' : '' %>>
+                    One full day
+                </label>
+                <label class="opt">
+                    <input type="radio" name="duration" value="range"
+                           <%= dur === 'range' ? 'checked' : '' %>>
+                    Several days
+                </label>
+            </fieldset>
+
+            <div id="secSingle" class="dates">
+                <label>Date
+                    <input type="date" name="single_date"
+                           value="<%= (form && form.single_date) ? form.single_date : '' %>">
+                </label>
+                <fieldset id="secHalf">
+                    <legend>Which half?</legend>
+                    <% var hp = (form && form.half_part) ? form.half_part : 'am'; %>
+                    <label class="opt">
+                        <input type="radio" name="half_part" value="am"
+                               <%= hp === 'am' ? 'checked' : '' %>>
+                        Morning
+                    </label>
+                    <label class="opt">
+                        <input type="radio" name="half_part" value="pm"
+                               <%= hp === 'pm' ? 'checked' : '' %>>
+                        Afternoon
+                    </label>
+                </fieldset>
+            </div>
+
+            <div id="secRange" class="dates" style="display:none">
+                <label>First day
+                    <input type="date" name="start_date"
+                           value="<%= (form && form.start_date) ? form.start_date : '' %>">
+                </label>
+                <label>Last day
+                    <input type="date" name="end_date"
+                           value="<%= (form && form.end_date) ? form.end_date : '' %>">
+                </label>
+            </div>
+
+            <label>Reason (optional)
+                <input type="text" name="reason" maxlength="500"
+                       value="<%= (form && form.reason) ? form.reason : '' %>">
+            </label>
+
+            <button type="submit" class="kiosk-btn">Submit request</button>
+        </form>
+        <p class="hint"><a href="/">&larr; Back to clock in</a></p>
+    </div>
+</main>
+<script>
+(function () {
+    var single = document.getElementById('secSingle');
+    var half = document.getElementById('secHalf');
+    var range = document.getElementById('secRange');
+    var radios = document.querySelectorAll('input[name="duration"]');
+    function apply() {
+        var v = document.querySelector('input[name="duration"]:checked').value;
+        single.style.display = (v === 'range') ? 'none' : '';
+        half.style.display = (v === 'half') ? '' : 'none';
+        range.style.display = (v === 'range') ? '' : 'none';
+    }
+    radios.forEach(function (r) { r.addEventListener('change', apply); });
+    apply();
+})();
+</script>
+</body>
+</html>

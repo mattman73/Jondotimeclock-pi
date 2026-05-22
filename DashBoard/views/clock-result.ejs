@@ -1,0 +1,24 @@
+<%
+    // Fall back to 5s if the route forgot to pass the value.
+    var secs = (typeof redirectSecs === 'number' && redirectSecs > 0) ? redirectSecs : 5;
+%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/static/css/kiosk.css">
+    <meta http-equiv="refresh" content="<%= secs %>; url=/">
+</head>
+<body class="kiosk kiosk-result kiosk-<%= action %>">
+<main class="result-main">
+    <div class="big-icon">
+        <% if (action === 'in') { %>&#10004;<% } else { %>&#8635;<% } %>
+    </div>
+    <h1><%= displayname %></h1>
+    <h2><%= action === 'in' ? 'Clocked IN' : 'Clocked OUT' %></h2>
+    <p class="hint">Returning to the clock-in screen in <%= secs %> second<%= secs === 1 ? '' : 's' %>&hellip;</p>
+    <p><a href="/" class="kiosk-btn">Continue now</a></p>
+</main>
+</body>
+</html>

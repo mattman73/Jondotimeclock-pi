@@ -1,0 +1,84 @@
+<%- include('../partials/head') %>
+<header class="page-head">
+    <h1><%= monthLabel %></h1>
+    <div style="display:flex; gap:8px;">
+        <a href="/timeoff/calendar?y=<%= prevMonth.y %>&m=<%= prevMonth.m %>" class="btn-secondary">&larr; Previous</a>
+        <a href="/timeoff/calendar" class="btn-secondary">This month</a>
+        <a href="/timeoff/calendar?y=<%= nextMonth.y %>&m=<%= nextMonth.m %>" class="btn-secondary">Next &rarr;</a>
+    </div>
+</header>
+
+<section class="card">
+<table class="data calendar-grid" style="table-layout: fixed; width: 100%;">
+    <thead>
+        <tr>
+            <th style="width:14.28%">Mon</th>
+            <th style="width:14.28%">Tue</th>
+            <th style="width:14.28%">Wed</th>
+            <th style="width:14.28%">Thu</th>
+            <th style="width:14.28%">Fri</th>
+            <th style="width:14.28%; background:#f0f0f0;">Sat</th>
+            <th style="width:14.28%; background:#f0f0f0;">Sun</th>
+        </tr>
+    </thead>
+    <tbody>
+    <%
+        // firstDow: JS 0=Sun..6=Sat. Convert to Mon-first.
+        var firstColOffset = (firstDow + 6) % 7;
+        var weeks = [];
+        var week = new Array(firstColOffset).fill(null);
+        days.forEach(function(d) {
+            week.push(d);
+            if (week.length === 7) { weeks.push(week); week = []; }
+        });
+        if (week.length) {
+            while (week.length < 7) week.push(null);
+            weeks.push(week);
+        }
+    %>
+    <% weeks.forEach(function(week){ %>
+        <tr>
+        <% week.forEach(function(d, colIdx){ %>
+            <% if (!d) { %>
+                <td style="background:#fafafa; min-height: 100px;"></td>
+            <% } else { %>
+                <% var isWeekend = colIdx >= 5;
+                   var cellBg = d.holiday ? '#fef3c7' : (isWeekend ? '#f7f7f7' : '#fff'); %>
+                <td style="vertical-align:top; min-height: 100px; height: 100px; background: <%= cellBg %>; padding: 6px;">
+                    <div style="font-weight:700; font-size:14px; margin-bottom:4px;">
+                        <%= d.day %>
+                    </div>
+                    <% if (d.holiday) { %>
+                        <div style="font-size:11px; font-weight:600; color:#92400e;">
+                            <%= d.holiday %>
+                        </div>
+                    <% } %>
+                    <% d.leave.slice(0, 4).forEach(function(l){ %>
+                        <% var bg = l.type === 'sick' ? '#fecaca' :
+                                    l.type === 'holiday' ? '#d1fae5' :
+                                    l.type === 'appointment' ? '#dbeafe' :
+                                    '#e9d5ff'; %>
+                        <div style="font-size:11px; padding:2px 6px; margin-top:2px; background:<%= bg %>; border-radius:3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            <%= l.emp %>
+                        </div>
+                    <% }) %>
+                    <% if (d.leave.length > 4) { %>
+                        <div style="font-size:11px; color: var(--muted); margin-top:2px;">+<%= d.leave.length - 4 %> more</div>
+                    <% } %>
+                </td>
+            <% } %>
+        <% }) %>
+        </tr>
+    <% }) %>
+    </tbody>
+</table>
+<p class="muted small" style="margin-top:12px;">
+    Legend: <span style="background:#d1fae5; padding:2px 8px; border-radius:3px;">holiday</span>
+    <span style="background:#fecaca; padding:2px 8px; border-radius:3px; margin-left:6px;">sick</span>
+    <span style="background:#dbeafe; padding:2px 8px; border-radius:3px; margin-left:6px;">appointment</span>
+    <span style="background:#e9d5ff; padding:2px 8px; border-radius:3px; margin-left:6px;">compassionate</span>
+    <span style="background:#fef3c7; padding:2px 8px; border-radius:3px; margin-left:6px;">non-working day</span>
+</p>
+</section>
+
+<%- include('../partials/foot') %>

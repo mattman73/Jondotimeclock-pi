@@ -1,0 +1,18 @@
+<%- include('partials/head') %>
+<div class="login-card">
+    <h1>Jondo Time Clock</h1>
+    <p class="subtitle">Admin dashboard sign-in</p>
+    <form method="post" action="/login">
+        <label>
+            Username
+            <input type="text" name="username" autocomplete="username" required autofocus>
+        </label>
+        <label>
+            Password
+            <input type="password" name="password" autocomplete="current-password" required>
+        </label>
+        <button type="submit" class="btn-primary">Sign in</button>
+    </form>
+    <p class="hint">Use your existing time-clock admin account.</p>
+</div>
+<%- include('partials/foot') %>

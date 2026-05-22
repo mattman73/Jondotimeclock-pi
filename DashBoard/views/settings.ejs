@@ -1,0 +1,257 @@
+<%- include('partials/head') %>
+<header class="page-head"><h1>Alerts &amp; email settings</h1></header>
+
+<form method="post" action="/settings">
+<section class="card">
+    <h2>Notifications</h2>
+    <div class="field-grid">
+        <label>
+            Manager email (receives late-arrival alerts)
+            <input type="email" name="manager_email" value="<%= settings.manager_email || '' %>">
+        </label>
+        <label>
+            Company name (used in emails)
+            <input type="text" name="company_name" value="<%= settings.company_name || 'Jondo' %>">
+        </label>
+    </div>
+    <p>
+        <label style="font-weight:normal">
+            <input type="checkbox" name="notify_manager" value="1" <%= Number(settings.notify_manager) ? 'checked' : '' %>>
+            Email manager when staff are late
+        </label>
+    </p>
+    <p>
+        <label style="font-weight:normal">
+            <input type="checkbox" name="notify_employee" value="1" <%= Number(settings.notify_employee) ? 'checked' : '' %>>
+            Also email the late employee directly
+        </label>
+    </p>
+</section>
+
+<section class="card">
+    <h2>SMTP</h2>
+    <div class="field-grid">
+        <label>Host <input type="text" name="smtp_host" value="<%= settings.smtp_host || '' %>" placeholder="smtp.office365.com"></label>
+        <label>Port <input type="number" name="smtp_port" value="<%= settings.smtp_port || 587 %>"></label>
+        <label>From address <input type="email" name="smtp_from" value="<%= settings.smtp_from || '' %>" placeholder="timeclock@jondo.co.uk"></label>
+        <label>Username <input type="text" name="smtp_user" value="<%= settings.smtp_user || '' %>"></label>
+        <label>Password <input type="password" name="smtp_pass" value="<%= settings.smtp_pass ? '__keep__' : '' %>" autocomplete="off"></label>
+        <label>
+            <input type="checkbox" name="smtp_secure" value="1" <%= Number(settings.smtp_secure) ? 'checked' : '' %>>
+            Use TLS on connect (port 465-style)
+        </label>
+    </div>
+    <p class="muted small">For Office 365, host = <code>smtp.office365.com</code>, port 587, secure off (uses STARTTLS).</p>
+</section>
+
+<section class="card">
+    <h2>WhatsApp notifications</h2>
+    <p class="muted small">
+        Sends late-staff and time-off alerts to managers on WhatsApp,
+        <strong>in addition to</strong> email. Uses the Meta WhatsApp
+        Business Cloud API. Note: the API cannot post into a WhatsApp
+        group &mdash; it sends to individual numbers, and a
+        business-initiated message must use a pre-approved template
+        with a single <code>{{1}}</code> body variable.
+    </p>
+    <p>
+        <label style="font-weight:normal">
+            <input type="checkbox" name="whatsapp_enabled" value="1"
+                   <%= Number(settings.whatsapp_enabled) ? 'checked' : '' %>>
+            Send WhatsApp alerts to managers
+        </label>
+    </p>
+    <div class="field-grid">
+        <label>
+            Phone number ID
+            <input type="text" name="whatsapp_phone_id"
+                   value="<%= settings.whatsapp_phone_id || '' %>"
+                   placeholder="from Meta -> WhatsApp -> API Setup">
+        </label>
+        <label>
+            Access token
+            <input type="password" name="whatsapp_token" autocomplete="off"
+                   value="<%= settings.whatsapp_token ? '__keep__' : '' %>"
+                   placeholder="permanent token from Meta">
+        </label>
+        <label>
+            Message template name
+            <input type="text" name="whatsapp_template"
+                   value="<%= settings.whatsapp_template || '' %>"
+                   placeholder="e.g. jondo_alert">
+        </label>
+        <label>
+            Template language
+            <%
+            var langs = [
+                ['en',    'English'],
+                ['en_GB', 'English (UK)'],
+                ['en_US', 'English (US)'],
+                ['cy',    'Welsh'],
+                ['ga',    'Irish'],
+                ['fr',    'French'],
+                ['fr_FR', 'French (France)'],
+                ['de',    'German'],
+                ['es',    'Spanish'],
+                ['es_ES', 'Spanish (Spain)'],
+                ['it',    'Italian'],
+                ['nl',    'Dutch'],
+                ['pl',    'Polish'],
+                ['pt_PT', 'Portuguese (Portugal)'],
+                ['pt_BR', 'Portuguese (Brazil)']
+            ];
+            var curLang = settings.whatsapp_lang || 'en_GB';
+            var known = langs.some(function (l) { return l[0] === curLang; });
+            %>
+            <select name="whatsapp_lang">
+                <% if (!known && curLang) { %>
+                    <option value="<%= curLang %>" selected><%= curLang %> (current)</option>
+                <% } %>
+                <% langs.forEach(function (l) { %>
+                    <option value="<%= l[0] %>" <%= curLang === l[0] ? 'selected' : '' %>><%= l[1] %> &mdash; <%= l[0] %></option>
+                <% }); %>
+            </select>
+            <span class="muted small" style="display:block; margin-top:4px;">
+                Must match the language your approved template was
+                created in (shown on the Message Templates page in Meta).
+            </span>
+        </label>
+        <label>
+            Manager numbers
+            <input type="text" name="whatsapp_recipients"
+                   value="<%= settings.whatsapp_recipients || '' %>"
+                   placeholder="447911123456, 447700900111">
+            <span class="muted small" style="display:block; margin-top:4px;">
+                Comma-separated, international format, digits only
+                (no +, no spaces). Each number gets the alert.
+            </span>
+        </label>
+    </div>
+</section>
+
+<section class="card">
+    <h2>Kiosk</h2>
+    <div class="field-grid">
+        <label>
+            Result screen duration (seconds)
+            <input type="number" name="kiosk_result_seconds" min="1" max="60"
+                   value="<%= settings.kiosk_result_seconds == null ? 5 : settings.kiosk_result_seconds %>">
+            <span class="muted small" style="display:block; margin-top:4px;">
+                How long the "Clocked IN / OUT" confirmation stays on screen
+                before returning to the badge scanner. Range 1&ndash;60.
+            </span>
+        </label>
+        <label>
+            Kiosk camera URL
+            <input type="text" name="kiosk_camera_url"
+                   value="<%= settings.kiosk_camera_url || '' %>"
+                   placeholder="http://192.168.x.x:8080/stream">
+            <span class="muted small" style="display:block; margin-top:4px;">
+                The MJPEG stream from the Raspberry Pi face scanner.
+                When set, the clock-in page shows a live camera preview.
+                Leave blank to hide it.
+            </span>
+        </label>
+    </div>
+</section>
+
+<section class="card">
+    <h2>Camera schedule</h2>
+    <p class="muted small">
+        The face-recognition camera is mainly needed at the start and
+        end of the day. With a schedule set, the Pi pauses face
+        recognition outside these two windows and the kiosk shows a
+        "sleeping" image &mdash; staff can tap it to wake the camera
+        for a short while.
+    </p>
+    <p>
+        <label style="font-weight:normal">
+            <input type="checkbox" name="camera_schedule_enabled" value="1"
+                   <%= Number(settings.camera_schedule_enabled) ? 'checked' : '' %>>
+            Use a camera schedule (otherwise the camera stays on all the time)
+        </label>
+    </p>
+    <div class="field-grid">
+        <label>
+            Morning &mdash; wake at
+            <input type="time" name="camera_morning_on"
+                   value="<%= settings.camera_morning_on || '07:00' %>">
+        </label>
+        <label>
+            Morning &mdash; sleep at
+            <input type="time" name="camera_morning_off"
+                   value="<%= settings.camera_morning_off || '10:00' %>">
+        </label>
+        <label>
+            Evening &mdash; wake at
+            <input type="time" name="camera_evening_on"
+                   value="<%= settings.camera_evening_on || '16:00' %>">
+        </label>
+        <label>
+            Evening &mdash; sleep at
+            <input type="time" name="camera_evening_off"
+                   value="<%= settings.camera_evening_off || '19:00' %>">
+        </label>
+        <label>
+            Wake duration (minutes)
+            <input type="number" name="camera_wake_minutes" min="1" max="240"
+                   value="<%= settings.camera_wake_minutes == null ? 15 : settings.camera_wake_minutes %>">
+            <span class="muted small" style="display:block; margin-top:4px;">
+                When someone taps the sleeping image, the camera wakes
+                for this many minutes, then sleeps again.
+            </span>
+        </label>
+    </div>
+</section>
+
+<section class="card">
+    <h2>Time off</h2>
+    <div class="field-grid">
+        <label>
+            Time-off notify email
+            <input type="email" name="timeoff_notify_email"
+                   value="<%= settings.timeoff_notify_email || '' %>"
+                   placeholder="leave blank to use manager email above">
+            <span class="muted small" style="display:block; margin-top:4px;">
+                Receives notifications when staff submit time-off requests.
+                If blank, falls back to the manager email.
+            </span>
+        </label>
+        <label>
+            Minimum holiday notice (days)
+            <input type="number" name="min_holiday_notice_days" min="0" max="365"
+                   value="<%= settings.min_holiday_notice_days == null ? 14 : settings.min_holiday_notice_days %>">
+            <span class="muted small" style="display:block; margin-top:4px;">
+                Holiday requests must be made this many days in advance.
+                Sick / appointment / compassionate leave have no notice rule.
+            </span>
+        </label>
+        <label>
+            Standard workday hours
+            <input type="number" name="standard_workday_hours" min="1" max="24" step="0.5"
+                   value="<%= settings.standard_workday_hours == null ? 8 : settings.standard_workday_hours %>">
+            <span class="muted small" style="display:block; margin-top:4px;">
+                Used to convert hours-worked to days when showing allowance.
+                Default 8 = a typical 9-to-5 day.
+            </span>
+        </label>
+    </div>
+</section>
+
+<button type="submit" class="btn-primary">Save settings</button>
+</form>
+
+<section class="card" style="margin-top:20px;">
+    <h2>Diagnostics</h2>
+    <form method="post" action="/settings/test-email" style="display:inline">
+        <button type="submit" class="btn-secondary">Send test email</button>
+    </form>
+    <form method="post" action="/settings/test-whatsapp" style="display:inline; margin-left:8px;">
+        <button type="submit" class="btn-secondary">Send test WhatsApp</button>
+    </form>
+    <form method="post" action="/settings/run-alerts" style="display:inline; margin-left:8px;">
+        <button type="submit" class="btn-secondary">Run alert check now</button>
+    </form>
+</section>
+
+<%- include('partials/foot') %>

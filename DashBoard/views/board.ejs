@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/static/css/kiosk.css">
+    <meta http-equiv="refresh" content="30">
+</head>
+<body class="kiosk board-mode">
+<header class="kiosk-head">
+    <div class="brand">
+        <img src="/static/img/jondo-logo.png" alt="Jondo" class="brand-logo"
+             style="background: #fff; padding: 4px 8px; border-radius: 6px;">
+        <span class="brand-text">Who's in</span>
+    </div>
+    <div id="datebox"></div>
+</header>
+<main class="board-page">
+    <div class="board-counts">
+        <div class="ct in"><span class="n"><%= counts.in %></span><span class="l">In</span></div>
+        <div class="ct out"><span class="n"><%= counts.out %></span><span class="l">Out</span></div>
+        <div class="ct"><span class="n"><%= counts.total %></span><span class="l">Total active</span></div>
+    </div>
+    <div class="board-grid">
+        <% rows.forEach(function(r){ %>
+            <div class="board-card <%= r.state %>">
+                <div class="nm"><%= r.displayname %></div>
+                <div class="st"><%= r.state.toUpperCase() %></div>
+                <% if (r.since) { %><div class="ts">since <%= r.since %></div><% } %>
+            </div>
+        <% }) %>
+    </div>
+</main>
+<script>
+(function(){
+    var days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    var months=["January","February","March","April","May","June","July","August","September","October","November","December"];
+    function nth(d){if(d>3&&d<21)return'th';switch(d%10){case 1:return'st';case 2:return'nd';case 3:return'rd';default:return'th';}}
+    function tick(){
+        var n=new Date();
+        document.getElementById('datebox').textContent =
+            days[n.getDay()]+', '+n.getDate()+nth(n.getDate())+' '+months[n.getMonth()]+' '+n.getFullYear()+
+            ' '+String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+    }
+    tick(); setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/static/css/kiosk.css">
+</head>
+<body class="kiosk">
+
+<header class="kiosk-head">
+    <div class="brand">
+        <img src="/static/img/jondo-logo.png" alt="Jondo" class="brand-logo">
+        <span class="brand-text">Time Clock</span>
+    </div>
+    <div id="digital-time">--:--:--</div>
+    <div id="datebox"></div>
+</header>
+
+<main class="kiosk-main">
+    <% var hasCam = (typeof cameraUrl !== 'undefined' && cameraUrl); %>
+    <% var camAsleep = (typeof cameraActive !== 'undefined' && cameraActive === false); %>
+    <div class="clock-col">
+        <% if (hasCam) { %>
+            <div id="camWrap" class="cam-wrap"<%- camAsleep ? ' style="display:none"' : '' %>>
+                <img id="camFeed" class="cam-feed" src="<%= cameraUrl %>" alt="Camera">
+                <div id="camDown" class="cam-down" style="display:none">
+                    Camera offline
+                </div>
+            </div>
+            <%# Shown when the camera is outside its scheduled hours. %>
+            <div id="camSleep" class="cam-sleep"<%- camAsleep ? '' : ' style="display:none"' %>
+                 role="button" tabindex="0" aria-label="Camera asleep — tap to wake it">
+                <svg class="cam-sleep-moon" viewBox="0 0 64 64" aria-hidden="true">
+                    <path d="M40 6a26 26 0 1 0 18 44A22 22 0 0 1 40 6z" fill="currentColor"/>
+                </svg>
+                <div class="cam-sleep-title">Camera asleep</div>
+                <div class="cam-sleep-sub">Tap here to wake it</div>
+            </div>
+            <p class="cam-hint" id="camHint"<%- camAsleep ? ' style="display:none"' : '' %>>Stand in the frame &mdash; the box turns green when you're recognised.</p>
+        <% } %>
+        <%# Analog clock always rendered; smaller when sharing the column with the camera. %>
+        <canvas id="analog"
+                width="<%= hasCam ? 170 : 260 %>"
+                height="<%= hasCam ? 170 : 260 %>"></canvas>
+        <div id="digital" class="digital">--:--:--</div>
+    </div>
+
+    <div class="scan-col">
+        <h1>Welcome to Jondo &mdash; <span class="accent">scan your badge to clock in</span></h1>
+        <% if (flash) { %>
+            <div class="kiosk-flash <%= isError ? 'err' : 'ok' %>"><%= flash %></div>
+        <% } %>
+        <form method="post" action="/" autocomplete="off" id="badgeForm">
+            <input type="text"
+                   name="BadgeID"
+                   id="BadgeID"
+                   class="badge-input"
+                   autofocus
+                   autocomplete="off"
+                   inputmode="numeric"
+                   placeholder=""
+                   value="">
+            <input type="text"
+                   name="notes"
+                   id="notes"
+                   class="notes-input"
+                   placeholder="Optional note (e.g. appointment, sick)"
+                   maxlength="240">
+            <button type="submit" class="kiosk-btn">Submit</button>
+        </form>
+
+        <%# Inline scan result — shown by JS, no page navigation. %>
+        <div id="scanResult" class="scan-result" style="display:none"></div>
+
+        <p class="hint">
+            No badge?
+            <a href="/password">Sign in with username &amp; password</a>
+        </p>
+        <p style="margin-top:22px;">
+            <a href="/book" style="display:inline-block; background:var(--jondo-blue); color:#fff; padding:13px 28px; border-radius:10px; font-size:18px; font-weight:600; text-decoration:none;">Book time off</a>
+        </p>
+    </div>
+</main>
+
+<script>
+// Keep focus on the badge field — barcode scanners type then Enter.
+(function () {
+    var input = document.getElementById('BadgeID');
+    function refocus() {
+        if (document.activeElement && document.activeElement.id === 'notes') return;
+        input.focus();
+    }
+    input.focus();
+    setInterval(refocus, 750);
+    document.addEventListener('click', refocus);
+})();
+
+// AJAX scan + small inline result line. No page navigation, no
+// full-screen overlay. Also polls for face-recognition punches.
+(function () {
+    var form = document.getElementById('badgeForm');
+    var badge = document.getElementById('BadgeID');
+    var notes = document.getElementById('notes');
+    var result = document.getElementById('scanResult');
+    var defaultSecs = <%= (typeof resultSecs === 'number' && resultSecs > 0) ? resultSecs : 5 %>;
+    var countdownTimer = null;
+    var busy = false;
+    var lastSeenTs = 0;
+
+    function clearResult() {
+        result.style.display = 'none';
+        result.className = 'scan-result';
+        result.textContent = '';
+        if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+    }
+
+    function showResult(kind, text, secs) {
+        result.className = 'scan-result ' + kind;
+        result.style.display = 'block';
+        var remaining = Math.max(1, secs | 0);
+        function render() { result.textContent = text; }
+        render();
+        if (countdownTimer) clearInterval(countdownTimer);
+        countdownTimer = setInterval(function () {
+            remaining -= 1;
+            if (remaining <= 0) { clearResult(); }
+        }, 1000);
+    }
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (busy) return;
+        var id = (badge.value || '').trim();
+        if (!id) { badge.focus(); return; }
+        busy = true;
+        var body = new URLSearchParams();
+        body.set('BadgeID', id);
+        body.set('notes', notes ? notes.value : '');
+        fetch('/scan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body.toString(),
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            busy = false;
+            badge.value = '';
+            if (notes) notes.value = '';
+            badge.focus();
+            if (data.ok) {
+                // Mark this punch as already seen so the live poll
+                // below doesn't show it a second time.
+                if (data.tstamp) lastSeenTs = data.tstamp;
+                var isIn = data.action === 'in';
+                showResult(
+                    isIn ? 'in' : 'out',
+                    '✓ ' + data.displayname + ' — Clocked ' + (isIn ? 'IN' : 'OUT'),
+                    data.redirectSecs || defaultSecs
+                );
+            } else {
+                showResult('err', '⚠ ' + (data.message || 'Please try again'), 6);
+            }
+        })
+        .catch(function () {
+            busy = false;
+            badge.focus();
+            showResult('err', '⚠ Network error — please try again', 6);
+        });
+    });
+
+    // Live punch poll. A face-recognition match on the Pi clocks the
+    // person in via the server's /api/punch — that never goes through
+    // this browser, so without this the kiosk screen would never
+    // react to it. We poll for the most recent punch and show the
+    // same inline confirmation when a newer one appears.
+    function pollRecent() {
+        fetch('/recent-punch', { cache: 'no-store' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (!data || !data.ok || !data.tstamp) return;
+                // First poll just records the baseline so we don't
+                // replay a punch that happened before the page loaded.
+                if (lastSeenTs === 0) { lastSeenTs = data.tstamp; return; }
+                if (data.tstamp > lastSeenTs) {
+                    lastSeenTs = data.tstamp;
+                    var isIn = data.action === 'in';
+                    showResult(
+                        isIn ? 'in' : 'out',
+                        '✓ ' + (data.displayname || '') + ' — Clocked ' + (isIn ? 'IN' : 'OUT'),
+                        defaultSecs
+                    );
+                }
+            })
+            .catch(function () { /* transient — retry next tick */ });
+    }
+    pollRecent();
+    setInterval(pollRecent, 2500);
+})();
+
+// Camera feed health — if the MJPEG stream drops, show "offline"
+// and keep retrying so it recovers when the Pi scanner returns.
+(function () {
+    var feed = document.getElementById('camFeed');
+    var down = document.getElementById('camDown');
+    if (!feed) return;
+    feed.addEventListener('error', function () {
+        feed.style.display = 'none';
+        if (down) down.style.display = 'flex';
+        setTimeout(function () {
+            var base = feed.src.split('?')[0];
+            feed.src = base + '?t=' + Date.now();
+        }, 4000);
+    });
+    feed.addEventListener('load', function () {
+        feed.style.display = '';
+        if (down) down.style.display = 'none';
+    });
+})();
+
+// Camera sleep / wake. The camera follows a schedule (set in the
+// dashboard Settings). Outside its hours we hide the feed and show
+// a "sleeping" panel; tapping it asks the server to wake the camera
+// for a while. We poll so the panel appears/disappears on its own
+// as the scheduled windows come and go.
+(function () {
+    var wrap  = document.getElementById('camWrap');
+    var sleep = document.getElementById('camSleep');
+    var hint  = document.getElementById('camHint');
+    if (!sleep) return;   // no camera configured on this kiosk
+
+    function applyState(active) {
+        if (active) {
+            if (wrap) wrap.style.display = '';
+            if (hint) hint.style.display = '';
+            sleep.style.display = 'none';
+        } else {
+            if (wrap) wrap.style.display = 'none';
+            if (hint) hint.style.display = 'none';
+            sleep.style.display = '';
+        }
+    }
+
+    function pollState() {
+        fetch('/camera-state', { cache: 'no-store' })
+            .then(function (r) { return r.json(); })
+            .then(function (d) { if (d && d.ok) applyState(d.active !== false); })
+            .catch(function () { /* transient */ });
+    }
+
+    var waking = false;
+    var title = sleep.querySelector('.cam-sleep-title');
+    function wake() {
+        if (waking) return;
+        waking = true;
+        if (title) title.textContent = 'Waking camera...';
+        fetch('/camera-wake', { method: 'POST' })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                waking = false;
+                if (title) title.textContent = 'Camera asleep';
+                if (d && d.ok) applyState(d.active !== false);
+            })
+            .catch(function () {
+                waking = false;
+                if (title) title.textContent = 'Camera asleep';
+            });
+    }
+
+    sleep.addEventListener('click', wake);
+    sleep.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); wake(); }
+    });
+
+    pollState();
+    setInterval(pollState, 15000);
+})();
+
+// Analog clock (carried over from original AnalogClock.html)
+(function () {
+    var canvas = document.getElementById('analog');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var radius = canvas.height / 2;
+    ctx.translate(radius, radius);
+    radius = radius * 0.90;
+
+    function drawFace(ctx, r) {
+        ctx.beginPath();
+        ctx.arc(0, 0, r, 0, 2 * Math.PI);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+        var grad = ctx.createRadialGradient(0, 0, r * 0.95, 0, 0, r * 1.05);
+        grad.addColorStop(0, '#1180BD');
+        grad.addColorStop(0.5, '#fff');
+        grad.addColorStop(1, '#1180BD');
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = r * 0.1;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(0, 0, r * 0.1, 0, 2 * Math.PI);
+        ctx.fillStyle = '#1180BD';
+        ctx.fill();
+    }
+    function drawNumbers(ctx, r) {
+        ctx.font = (r * 0.15) + "px Arial";
+        ctx.textBaseline = "middle";
+        ctx.textAlign = "center";
+        ctx.fillStyle = '#1a1a1a';
+        for (var num = 1; num < 13; num++) {
+            var ang = num * Math.PI / 6;
+            ctx.rotate(ang);
+            ctx.translate(0, -r * 0.85);
+            ctx.rotate(-ang);
+            ctx.fillText(num.toString(), 0, 0);
+            ctx.rotate(ang);
+            ctx.translate(0, r * 0.85);
+            ctx.rotate(-ang);
+        }
+    }
+    function drawHand(ctx, pos, length, width, color) {
+        ctx.beginPath();
+        ctx.lineWidth = width;
+        ctx.lineCap = "round";
+        ctx.strokeStyle = color || '#1a1a1a';
+        ctx.moveTo(0, 0);
+        ctx.rotate(pos);
+        ctx.lineTo(0, -length);
+        ctx.stroke();
+        ctx.rotate(-pos);
+    }
+    function drawTime(ctx, r) {
+        var now = new Date();
+        var hour = now.getHours() % 12;
+        var minute = now.getMinutes();
+        var second = now.getSeconds();
+        hour = (hour * Math.PI / 6) + (minute * Math.PI / (6 * 60)) + (second * Math.PI / (360 * 60));
+        drawHand(ctx, hour, r * 0.5, r * 0.07, '#1a1a1a');
+        var minAng = (minute * Math.PI / 30) + (second * Math.PI / (30 * 60));
+        drawHand(ctx, minAng, r * 0.8, r * 0.07, '#1a1a1a');
+        var secAng = (second * Math.PI / 30);
+        drawHand(ctx, secAng, r * 0.9, r * 0.02, '#E84855');
+    }
+    function drawClock() {
+        ctx.clearRect(-radius * 1.2, -radius * 1.2, radius * 2.4, radius * 2.4);
+        drawFace(ctx, radius);
+        drawNumbers(ctx, radius);
+        drawTime(ctx, radius);
+    }
+    drawClock();
+    setInterval(drawClock, 1000);
+})();
+
+// Digital clock + date strip
+(function () {
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+    var days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    var months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    function nth(d) {
+        if (d > 3 && d < 21) return 'th';
+        switch (d % 10) { case 1: return 'st'; case 2: return 'nd'; case 3: return 'rd'; default: return 'th'; }
+    }
+    function tick() {
+        var now = new Date();
+        var time = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+        var date = days[now.getDay()] + ', ' + now.getDate() + nth(now.getDate()) + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+        var d1 = document.getElementById('digital');
+        if (d1) d1.textContent = time;
+        var d2 = document.getElementById('digital-time');
+        if (d2) d2.textContent = time;
+        var db = document.getElementById('datebox');
+        if (db) db.textContent = date;
+    }
+    tick();
+    setInterval(tick, 1000);
+})();
+</script>
+
+</body>
+</html>

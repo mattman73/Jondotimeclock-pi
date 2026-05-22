@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/static/css/kiosk.css">
+</head>
+<body class="kiosk">
+<header class="kiosk-head">
+    <div class="brand">
+        <img src="/static/img/jondo-logo.png" alt="Jondo" class="brand-logo">
+        <span class="brand-text">My requests</span>
+    </div>
+    <div style="display:flex; gap:14px; align-items:center;">
+        <a href="/portal" style="color: var(--jondo-blue); text-decoration: underline;">My portal</a>
+        <a href="/timeoff/new" class="kiosk-btn" style="padding: 8px 16px; font-size: 16px;">+ New request</a>
+    </div>
+</header>
+
+<main class="kiosk-main centered" style="align-items: flex-start;">
+    <div class="pw-card" style="max-width: 900px; width: 100%;">
+        <h1>My time-off requests</h1>
+        <p class="hint">Remaining holiday: <strong><%= allowance.remainingDays %></strong> days
+            (<%= allowance.pendingDays %> day(s) pending).</p>
+
+        <% if (success && success.length) success.forEach(function(m){ %>
+            <div class="kiosk-flash ok"><%= m %></div>
+        <% }) %>
+        <% if (error && error.length) error.forEach(function(m){ %>
+            <div class="kiosk-flash err"><%= m %></div>
+        <% }) %>
+
+        <% if (!requests.length) { %>
+            <p class="hint">No requests yet. <a href="/timeoff/new">Book your first one</a>.</p>
+        <% } else { %>
+        <table style="width:100%; border-collapse: collapse; margin-top: 12px;">
+            <thead>
+                <tr style="text-align:left; color: var(--jondo-grey); font-size: 12px; text-transform: uppercase; letter-spacing:1px;">
+                    <th style="padding:8px;">Type</th>
+                    <th style="padding:8px;">Dates</th>
+                    <th style="padding:8px;">Hours</th>
+                    <th style="padding:8px;">Status</th>
+                    <th style="padding:8px;">Reviewed</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <% requests.forEach(function(r){ %>
+                <tr style="border-top: 1px solid var(--jondo-grey-light);">
+                    <td style="padding:10px 8px;"><%= r.request_type %></td>
+                    <td style="padding:10px 8px;">
+                        <%= r.start_datetime %><br>
+                        <span style="color: var(--jondo-grey); font-size:12px;">to <%= r.end_datetime %></span>
+                    </td>
+                    <td style="padding:10px 8px;"><%= Number(r.hours_requested).toFixed(1) %>h</td>
+                    <td style="padding:10px 8px;">
+                        <span style="font-weight:600; text-transform:uppercase; font-size:12px;
+                            color: <%= r.status === 'approved' ? 'var(--jondo-good)' :
+                                        r.status === 'rejected' ? 'var(--jondo-red)' :
+                                        r.status === 'cancelled' ? 'var(--jondo-grey)' :
+                                        'var(--jondo-yellow-dark)' %>;">
+                            <%= r.status %>
+                        </span>
+                    </td>
+                    <td style="padding:10px 8px; font-size:12px; color: var(--jondo-grey);">
+                        <% if (r.reviewed_at) { %>
+                            <%= r.reviewed_at %><br>by <%= r.reviewed_by %>
+                            <% if (r.review_note) { %><br><em><%= r.review_note %></em><% } %>
+                        <% } else { %>
+                            &mdash;
+                        <% } %>
+                    </td>
+                    <td style="padding:10px 8px; text-align:right;">
+                        <% if (r.status === 'pending') { %>
+                        <form method="post" action="/timeoff/<%= r.id %>/cancel" style="display:inline"
+                              onsubmit="return confirm('Cancel this request?')">
+                            <button type="submit"
+                                    style="background: var(--jondo-grey-light); border:none; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-weight:600;">
+                                Cancel
+                            </button>
+                        </form>
+                        <% } %>
+                    </td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        <% } %>
+    </div>
+</main>
+</body>
+</html>

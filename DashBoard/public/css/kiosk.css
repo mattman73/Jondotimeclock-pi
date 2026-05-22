@@ -1,0 +1,545 @@
+/* Kiosk pages — themed with Jondo brand colours.
+   Layout is white-canvas with strong colour accents so the logo
+   reads as the focal point (mirrors how the printed logo is set). */
+
+:root {
+    /* Brand palette pulled from the Jondo logo */
+    --jondo-blue:        #1180BD;
+    --jondo-blue-dark:   #0C5F8C;
+    --jondo-yellow:      #F5B82F;
+    --jondo-yellow-dark: #D89E20;
+    --jondo-red:         #E84855;
+    --jondo-red-dark:    #C53541;
+    --jondo-black:       #1a1a1a;
+    --jondo-grey:        #4a4a4a;
+    --jondo-grey-light:  #e5e7eb;
+    --jondo-canvas:      #ffffff;
+    --jondo-bg:          #f7f7f8;     /* off-white page wash */
+    --jondo-good:        #1b7a3f;     /* clocked in (green)  */
+    --jondo-good-dark:   #14592e;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+body.kiosk {
+    background: var(--jondo-bg);
+    color: var(--jondo-black);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    min-height: 100%;
+}
+
+/* --- header --- */
+.kiosk-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 36px;
+    background: var(--jondo-canvas);
+    border-bottom: 1px solid var(--jondo-grey-light);
+    color: var(--jondo-black);
+    font-size: 20px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.kiosk-head .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    color: var(--jondo-black);
+}
+.kiosk-head .brand-logo {
+    height: 48px;
+    width: auto;
+}
+.kiosk-head .brand-text {
+    display: inline-block;
+    color: var(--jondo-grey);
+    font-weight: 500;
+}
+.kiosk-head #datebox,
+.kiosk-head #digital-time {
+    color: var(--jondo-grey);
+    font-variant-numeric: tabular-nums;
+}
+
+/* --- main layout --- */
+.kiosk-main {
+    display: flex;
+    gap: 40px;
+    padding: 48px 36px 60px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.kiosk-main.centered { justify-content: center; }
+
+.clock-col { text-align: center; }
+.clock-col canvas {
+    background: var(--jondo-canvas);
+    border-radius: 50%;
+    box-shadow: 0 8px 24px rgba(17, 128, 189, 0.18);
+}
+.digital {
+    margin-top: 16px;
+    font-size: 38px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 4px;
+    color: var(--jondo-blue-dark);
+    font-weight: 600;
+}
+
+.scan-col {
+    flex: 1;
+    min-width: 320px;
+    max-width: 640px;
+}
+.scan-col h1 {
+    font-size: 40px;
+    margin: 0 0 20px;
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--jondo-black);
+}
+.scan-col h1 .accent { color: var(--jondo-blue); }
+
+/* --- input + form --- */
+.badge-input {
+    width: 100%;
+    padding: 20px 24px;
+    font-size: 48px;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 6px;
+    border: 3px solid var(--jondo-blue);
+    border-radius: 12px;
+    background: var(--jondo-canvas);
+    color: var(--jondo-blue-dark);
+    box-shadow: 0 4px 16px rgba(17, 128, 189, 0.12);
+    margin-bottom: 14px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.badge-input:focus {
+    outline: none;
+    border-color: var(--jondo-yellow);
+    box-shadow: 0 0 0 4px rgba(245, 184, 47, 0.25);
+}
+
+.notes-input {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 17px;
+    border: 1px solid var(--jondo-grey-light);
+    border-radius: 8px;
+    margin-bottom: 14px;
+    color: var(--jondo-black);
+}
+.notes-input:focus {
+    outline: none;
+    border-color: var(--jondo-blue);
+}
+
+.kiosk-btn {
+    display: inline-block;
+    background: var(--jondo-yellow);
+    color: var(--jondo-black);
+    border: none;
+    padding: 16px 32px;
+    font-size: 22px;
+    font-weight: 700;
+    border-radius: 10px;
+    cursor: pointer;
+    text-decoration: none;
+    min-height: 52px;
+    box-shadow: 0 4px 10px rgba(245, 184, 47, 0.35);
+    transition: background 0.15s, transform 0.05s;
+}
+.kiosk-btn:hover  { background: var(--jondo-yellow-dark); }
+.kiosk-btn:active { transform: translateY(1px); }
+
+.hint {
+    margin-top: 18px;
+    color: var(--jondo-grey);
+    font-size: 16px;
+}
+.hint a {
+    color: var(--jondo-blue);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px dotted var(--jondo-blue);
+}
+.hint a:hover { color: var(--jondo-blue-dark); }
+
+.kiosk-flash {
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin-bottom: 18px;
+    font-size: 18px;
+    font-weight: 600;
+}
+.kiosk-flash.err {
+    background: rgba(232, 72, 85, 0.1);
+    border-left: 4px solid var(--jondo-red);
+    color: var(--jondo-red-dark);
+}
+.kiosk-flash.ok {
+    background: rgba(27, 122, 63, 0.1);
+    border-left: 4px solid var(--jondo-good);
+    color: var(--jondo-good-dark);
+}
+
+/* --- password fallback card --- */
+.pw-card {
+    background: var(--jondo-canvas);
+    border: 1px solid var(--jondo-grey-light);
+    border-radius: 12px;
+    padding: 32px 36px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+}
+.pw-card h1 { margin: 0 0 8px; font-size: 30px; color: var(--jondo-black); }
+.pw-card .hint { margin-top: 0; }
+.pw-card label {
+    display: block;
+    margin-top: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--jondo-grey);
+}
+.pw-card input {
+    width: 100%;
+    padding: 12px 14px;
+    margin-top: 6px;
+    font-size: 18px;
+    border: 1px solid var(--jondo-grey-light);
+    border-radius: 8px;
+    color: var(--jondo-black);
+}
+.pw-card input:focus {
+    outline: none;
+    border-color: var(--jondo-blue);
+}
+.pw-card .kiosk-btn { margin-top: 20px; width: 100%; }
+
+/* --- result page (full-screen on punch) ---
+   Keeps the strong colour signal: green = in, red = out, so staff
+   can read it from across a room. */
+.kiosk-result.kiosk-in   { background: var(--jondo-good); }
+.kiosk-result.kiosk-out  { background: var(--jondo-red);  }
+.kiosk-result            { color: #fff; }
+.result-main {
+    text-align: center;
+    padding: 80px 24px;
+}
+.result-main .big-icon {
+    font-size: 132px;
+    line-height: 1;
+}
+.result-main h1 {
+    font-size: 60px;
+    margin: 24px 0 8px;
+}
+.result-main h2 {
+    font-size: 32px;
+    margin: 0 0 24px;
+    font-weight: 400;
+    opacity: 0.95;
+}
+.result-main .kiosk-btn {
+    background: #fff;
+    color: var(--jondo-black);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+.result-main .kiosk-btn:hover { background: var(--jondo-yellow); }
+
+/* --- "who's in" board ---
+   Stays dark + high-contrast because it lives on a wall display
+   and needs to be readable from across the room. */
+body.kiosk.board-mode { background: var(--jondo-blue-dark); color: #fff; }
+body.kiosk.board-mode .kiosk-head {
+    background: var(--jondo-blue-dark);
+    border-bottom: 1px solid rgba(255,255,255,0.18);
+    color: #fff;
+}
+body.kiosk.board-mode .kiosk-head .brand,
+body.kiosk.board-mode .kiosk-head #datebox,
+body.kiosk.board-mode .kiosk-head #digital-time { color: #fff; }
+body.kiosk.board-mode .kiosk-head .brand-text { color: rgba(255,255,255,0.85); }
+
+.board-page { padding: 20px 28px; }
+.board-page h1 { margin: 0 0 18px; font-size: 30px; }
+.board-counts {
+    display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;
+}
+.board-counts .ct {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 10px;
+    padding: 12px 20px;
+    min-width: 110px;
+    text-align: center;
+    flex: 1 1 auto;
+}
+.board-counts .ct .n { font-size: 32px; font-weight: 700; display: block; }
+.board-counts .ct .l { font-size: 12px; opacity: 0.75; text-transform: uppercase; letter-spacing: 1px; }
+.board-counts .ct.in  .n { color: var(--jondo-yellow); }
+.board-counts .ct.out .n { color: var(--jondo-red);    }
+
+.board-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+}
+.board-card {
+    border-radius: 10px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.08);
+    border-left: 6px solid #888;
+}
+.board-card.in  { border-left-color: var(--jondo-yellow); background: rgba(245, 184, 47, 0.12); }
+.board-card.out { border-left-color: var(--jondo-red);    background: rgba(232, 72, 85, 0.10); }
+.board-card .nm { font-weight: 700; font-size: 18px; }
+.board-card .st { font-size: 12px; text-transform: uppercase; opacity: 0.85; margin-top: 4px; letter-spacing: 1px; }
+.board-card .ts { font-size: 12px; opacity: 0.75; margin-top: 6px; }
+
+/* --- fire roll-call ---
+   Stays urgent — Jondo red theme so it doesn't get confused with
+   the calm clock-in screen. */
+body.kiosk.fire-mode { background: var(--jondo-red-dark); color: #fff; }
+body.kiosk.fire-mode .kiosk-head {
+    background: var(--jondo-red-dark);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+}
+body.kiosk.fire-mode .kiosk-head .brand,
+body.kiosk.fire-mode .kiosk-head .brand-text { color: #fff; }
+
+.fire-page { padding: 20px 28px; }
+.fire-page h1 { font-size: 36px; margin: 0 0 12px; }
+.fire-bar {
+    display: flex; gap: 12px; align-items: center;
+    margin-bottom: 20px; flex-wrap: wrap;
+}
+.fire-bar .stat {
+    background: rgba(255, 255, 255, 0.12);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+}
+.fire-bar form { margin-left: auto; }
+.fire-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+}
+.fire-card {
+    background: var(--jondo-canvas);
+    color: var(--jondo-red-dark);
+    border-radius: 8px;
+    padding: 16px;
+    cursor: pointer;
+    border: none;
+    font-size: 18px;
+    font-weight: 700;
+    text-align: left;
+    width: 100%;
+}
+.fire-card.accounted {
+    background: var(--jondo-good);
+    color: #fff;
+}
+.fire-card .small {
+    display: block; font-weight: 400; font-size: 12px;
+    opacity: 0.8; margin-top: 4px;
+}
+
+
+/* --- live camera feed on the kiosk --- */
+.cam-wrap {
+    position: relative;
+    width: 320px;
+    max-width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(17, 128, 189, 0.18);
+    background: #000;
+}
+.cam-feed {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+.cam-down {
+    position: absolute;
+    inset: 0;
+    align-items: center;
+    justify-content: center;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 600;
+    min-height: 240px;
+}
+.cam-hint {
+    margin-top: 10px;
+    font-size: 14px;
+    color: var(--jondo-grey);
+    text-align: center;
+    max-width: 320px;
+}
+
+/* Camera "asleep" panel — shown outside the camera's scheduled
+   hours. Tapping it asks the server to wake the camera. */
+.cam-sleep {
+    width: 320px;
+    max-width: 100%;
+    min-height: 240px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(17, 128, 189, 0.18);
+    background: #0f2a3a;
+    color: #cfe6f3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    user-select: none;
+    text-align: center;
+    transition: background 0.15s ease;
+}
+.cam-sleep:hover,
+.cam-sleep:focus {
+    background: #143a52;
+    outline: none;
+}
+.cam-sleep-moon {
+    width: 56px;
+    height: 56px;
+    color: #ffd56b;
+    margin-bottom: 6px;
+}
+.cam-sleep-title {
+    font-size: 20px;
+    font-weight: 700;
+}
+.cam-sleep-sub {
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+/* ============================================================
+   RESPONSIVE BREAKPOINTS
+   ============================================================ */
+
+@media (max-width: 900px) {
+    .kiosk-head { padding: 14px 20px; font-size: 18px; }
+    .kiosk-head .brand-logo { height: 40px; }
+    .kiosk-main { padding: 32px 20px 40px; gap: 28px; }
+    .scan-col h1 { font-size: 32px; }
+    .badge-input { font-size: 40px; padding: 16px 20px; letter-spacing: 4px; }
+    .clock-col canvas { width: 200px; height: 200px; }
+    .digital { font-size: 30px; }
+}
+
+@media (max-width: 600px) {
+    /* Hide analog clock on phones — digital lives in the header */
+    .clock-col { display: none; }
+    .kiosk-head { padding: 12px 14px; font-size: 15px; row-gap: 4px; }
+    .kiosk-head .brand-logo { height: 32px; }
+    .kiosk-head .brand-text { display: none; }
+    .kiosk-head #digital-time {
+        display: inline-block;
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--jondo-blue);
+    }
+    .kiosk-head #datebox {
+        width: 100%; text-align: center; font-size: 13px;
+    }
+    .kiosk-main {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 24px 16px 32px;
+    }
+    .scan-col { min-width: 0; max-width: 100%; }
+    .scan-col h1 { font-size: 24px; text-align: center; }
+    .badge-input {
+        font-size: 34px; padding: 16px 14px; letter-spacing: 3px;
+    }
+    .notes-input { font-size: 16px; }
+    .kiosk-btn { width: 100%; font-size: 20px; padding: 16px 20px; }
+    .hint { text-align: center; }
+
+    /* Result page */
+    .result-main { padding: 60px 18px; }
+    .result-main .big-icon { font-size: 100px; }
+    .result-main h1 { font-size: 42px; }
+    .result-main h2 { font-size: 24px; }
+
+    /* Board */
+    .board-page { padding: 14px; }
+    .board-page h1 { font-size: 22px; }
+    .board-counts { gap: 8px; }
+    .board-counts .ct { min-width: 0; padding: 10px 12px; }
+    .board-counts .ct .n { font-size: 22px; }
+    .board-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 8px;
+    }
+
+    /* Fire */
+    .fire-page { padding: 14px; }
+    .fire-page h1 { font-size: 26px; }
+    .fire-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .fire-card { padding: 18px 12px; min-height: 64px; }
+
+    /* Password card */
+    .pw-card { padding: 22px 18px; }
+    .pw-card h1 { font-size: 24px; }
+}
+
+@media (max-width: 380px) {
+    .scan-col h1 { font-size: 22px; }
+    .badge-input { font-size: 28px; letter-spacing: 2px; padding: 14px; }
+    .fire-grid { grid-template-columns: 1fr; }
+}
+
+/* Default state — hide compact header-time on desktop (responsive
+   queries above flip it on for phones). */
+.kiosk-head #digital-time { display: none; }
+
+.clock-col canvas { margin-top: 6px; }
+
+/* --- inline scan result line (small confirmation under the badge box) --- */
+.scan-result {
+    margin-top: 16px;
+    padding: 16px 20px;
+    border-radius: 10px;
+    font-size: 24px;
+    font-weight: 700;
+    text-align: center;
+}
+.scan-result.in {
+    background: #e7f6ec;
+    color: #1b6b35;
+    border: 2px solid #1b6b35;
+}
+.scan-result.out {
+    background: #e7f0f8;
+    color: #15517f;
+    border: 2px solid #15517f;
+}
+.scan-result.err {
+    background: #fdecec;
+    color: #a32020;
+    border: 2px solid #a32020;
+}

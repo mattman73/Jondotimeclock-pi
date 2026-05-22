@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/static/css/kiosk.css">
+    <meta http-equiv="refresh" content="20">
+</head>
+<body class="kiosk fire-mode">
+<header class="kiosk-head">
+    <div class="brand">
+        <img src="/static/img/jondo-logo.png" alt="Jondo" class="brand-logo"
+             style="background: #fff; padding: 4px 8px; border-radius: 6px;">
+        <span class="brand-text">Fire / evacuation roll-call</span>
+    </div>
+    <div><a href="/dashboard" style="color:#fff; text-decoration: underline;">&larr; Dashboard</a></div>
+</header>
+<main class="fire-page">
+    <% if (success && success.length) { success.forEach(function(m){ %>
+        <div class="kiosk-flash ok"><%= m %></div>
+    <% }) } %>
+    <h1>People still inside</h1>
+    <div class="fire-bar">
+        <div class="stat">In building: <%= counts.inBuilding %></div>
+        <div class="stat" style="background:#1b5e20">Accounted: <%= counts.accounted %></div>
+        <div class="stat" style="background:#c62828">Outstanding: <%= counts.outstanding %></div>
+        <form method="post" action="/fire/end" onsubmit="return confirm('End drill and reset all roll-call state?')">
+            <button class="kiosk-btn" type="submit">End drill</button>
+        </form>
+    </div>
+
+    <% if (!rows.length) { %>
+        <p>No-one is currently clocked in. There's nothing to roll-call.</p>
+    <% } %>
+
+    <div class="fire-grid">
+        <% rows.forEach(function(r){ %>
+            <% if (r.accounted) { %>
+                <form method="post" action="/fire/unaccount">
+                    <input type="hidden" name="emp" value="<%= r.empfullname %>">
+                    <button class="fire-card accounted" type="submit">
+                        &#10004; <%= r.displayname %>
+                        <span class="small">accounted by <%= r.by || '?' %> &mdash; tap to undo</span>
+                    </button>
+                </form>
+            <% } else { %>
+                <form method="post" action="/fire/account">
+                    <input type="hidden" name="emp" value="<%= r.empfullname %>">
+                    <button class="fire-card" type="submit">
+                        <%= r.displayname %>
+                        <span class="small">tap when you see them</span>
+                    </button>
+                </form>
+            <% } %>
+        <% }) %>
+    </div>
+    <p class="hint">Page auto-refreshes every 20 seconds. Tap a name to mark accounted-for; tap a green name to undo.</p>
+</main>
+</body>
+</html>

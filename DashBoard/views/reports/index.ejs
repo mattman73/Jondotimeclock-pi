@@ -1,0 +1,12 @@
+<%- include('../partials/head') %>
+<header class="page-head"><h1>Reports</h1></header>
+<section class="card">
+    <ul style="list-style:none; padding:0;">
+        <% reports.forEach(function(r){ %>
+            <li style="padding:10px 0; border-bottom:1px solid var(--border);">
+                <a href="/reports/<%= r.key %>" style="font-weight:600; font-size:16px;"><%= r.title %></a>
+            </li>
+        <% }) %>
+    </ul>
+</section>
+<%- include('../partials/foot') %>

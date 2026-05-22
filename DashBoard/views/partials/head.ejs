@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> · Jondo Time Clock</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<% if (typeof user !== 'undefined' && user) { %>
+<nav class="topnav">
+    <div class="brand">Jondo Time Clock</div>
+    <ul>
+        <li><a href="/dashboard" class="<%= path && path.startsWith('/dashboard') ? 'active' : '' %>">Dashboard</a></li>
+        <li><a href="/staff" class="<%= path && path.startsWith('/staff') ? 'active' : '' %>">Staff</a></li>
+        <li><a href="/schedules" class="<%= path && path.startsWith('/schedules') ? 'active' : '' %>">Schedules</a></li>
+        <li><a href="/reports" class="<%= path && path.startsWith('/reports') ? 'active' : '' %>">Reports</a></li>
+        <li><a href="/board" class="<%= path && path.startsWith('/board') ? 'active' : '' %>" target="_blank">Board</a></li>
+        <li><a href="/fire" class="<%= path && path.startsWith('/fire') ? 'active' : '' %>">Fire</a></li>
+        <li><a href="/faces" class="<%= path && path.startsWith('/faces') ? 'active' : '' %>">Faces</a></li>
+        <li><a href="/timeoff/admin" class="<%= path && path.startsWith('/timeoff') ? 'active' : '' %>">Time off</a></li>
+        <li><a href="/holidays" class="<%= path && path.startsWith('/holidays') ? 'active' : '' %>">Holidays</a></li>
+        <li><a href="/settings" class="<%= path && path.startsWith('/settings') ? 'active' : '' %>">Settings</a></li>
+    </ul>
+    <div class="user">
+        <span><%= user.displayname %></span>
+        <a href="/logout">Sign out</a>
+    </div>
+</nav>
+<% } %>
+<main class="container">
+    <% if (success && success.length) { %>
+        <% success.forEach(function(m){ %><div class="flash flash-success"><%= m %></div><% }) %>
+    <% } %>
+    <% if (error && error.length) { %>
+        <% error.forEach(function(m){ %><div class="flash flash-error"><%= m %></div><% }) %>
+    <% } %>

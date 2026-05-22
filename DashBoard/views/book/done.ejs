@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/static/css/kiosk.css">
+</head>
+<body class="kiosk">
+<header class="kiosk-head">
+    <div class="brand">
+        <img src="/static/img/jondo-logo.png" alt="Jondo" class="brand-logo">
+        <span class="brand-text">Time Clock</span>
+    </div>
+</header>
+<main class="kiosk-main centered">
+    <div class="pw-card">
+        <h1>Request submitted</h1>
+        <div class="kiosk-flash ok">
+            Thanks, <%= info.displayname %> &mdash; your request has been sent for approval.
+        </div>
+        <p class="hint">
+            <strong><%= info.type.charAt(0).toUpperCase() + info.type.slice(1) %></strong><br>
+            <%= info.start %><br>
+            to <%= info.end %><br>
+            <%= info.hours.toFixed(2) %> hours
+        </p>
+        <p class="hint">A manager will review it, and you'll be notified by email.</p>
+        <p>
+            <a href="/" class="kiosk-btn" style="display:inline-block; text-decoration:none;">Done</a>
+        </p>
+    </div>
+</main>
+</body>
+</html>

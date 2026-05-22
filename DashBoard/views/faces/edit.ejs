@@ -1,0 +1,167 @@
+<%- include('../partials/head') %>
+<header class="page-head">
+    <h1><%= title %> &mdash; Face recognition</h1>
+    <a href="/faces" class="btn-secondary">Back</a>
+</header>
+
+<section class="card">
+    <h2>Consent</h2>
+    <% if (Number(emp.face_opt_in)) { %>
+        <p><span class="badge badge-good">Opted in</span> on <%= emp.face_consent_at %></p>
+        <form method="post" action="/faces/<%= encodeURIComponent(emp.empfullname) %>/opt-out" style="display:inline">
+            <button type="submit" class="btn-secondary">Withdraw consent</button>
+        </form>
+    <% } else { %>
+        <p class="muted">This employee has NOT opted in to face recognition. The Pi scanner will not use their data.</p>
+        <form method="post" action="/faces/<%= encodeURIComponent(emp.empfullname) %>/opt-in" style="display:inline">
+            <button type="submit" class="btn-primary">Record consent (opt in)</button>
+        </form>
+    <% } %>
+    <p class="muted small" style="margin-top:12px;">
+        Under UK GDPR, biometric data needs explicit, freely-given consent. Make sure the employee
+        has signed your face-recognition consent form before opting them in here.
+    </p>
+</section>
+
+<section class="card">
+    <h2>Capture reference photos</h2>
+    <p class="muted">Take 3–5 photos in different lighting / slight angle changes. The Pi will average them.</p>
+
+    <div id="cameraBox" style="display:none">
+        <video id="cam" autoplay playsinline muted style="width:320px; height:240px; background:#000; border-radius:8px;"></video>
+        <canvas id="snap" width="320" height="240" style="display:none"></canvas>
+    </div>
+
+    <div style="margin-top:12px;">
+        <button id="startBtn" class="btn-primary" type="button">Start camera</button>
+        <button id="captureBtn" class="btn-primary" type="button" disabled>Capture photo</button>
+        <button id="stopBtn" class="btn-secondary" type="button" disabled>Stop camera</button>
+    </div>
+    <p id="capStatus" class="muted small" style="margin-top:8px;"></p>
+</section>
+
+<section class="card">
+    <h2>Saved photos (<%= photos.length %>)</h2>
+    <% if (!photos.length) { %>
+        <p class="muted">No photos yet.</p>
+    <% } else { %>
+    <div style="display:flex; flex-wrap:wrap; gap:12px;">
+    <% photos.forEach(function(p){ %>
+        <div style="border:1px solid var(--border); border-radius:8px; padding:8px; text-align:center;">
+            <img src="/faces/<%= encodeURIComponent(emp.empfullname) %>/photo/<%= p.id %>"
+                 alt="enrolled face"
+                 style="width:140px; height:140px; object-fit:cover; border-radius:6px; background:#eee;">
+            <div class="muted small"><%= p.captured_at %></div>
+            <form method="post" action="/faces/<%= encodeURIComponent(emp.empfullname) %>/photo/<%= p.id %>/delete"
+                  onsubmit="return confirm('Delete this photo?')">
+                <button type="submit" class="btn-small">Delete</button>
+            </form>
+        </div>
+    <% }) %>
+    </div>
+    <% } %>
+</section>
+
+<section class="card">
+    <h2>Recent match attempts (last 20)</h2>
+    <% if (!audit.length) { %>
+        <p class="muted">No face match attempts logged yet.</p>
+    <% } else { %>
+    <table class="data">
+        <thead><tr><th>When</th><th>Action</th><th>Confidence</th><th>Reason</th><th>Pi</th></tr></thead>
+        <tbody>
+        <% audit.forEach(function(a){ %>
+            <tr>
+                <td><%= a.captured_at %></td>
+                <td>
+                    <% var cls = a.action === 'matched' ? 'badge-good' :
+                                 a.action === 'rejected' ? 'badge-warn' :
+                                 a.action === 'spoof' ? 'badge-bad' : 'badge-muted'; %>
+                    <span class="badge <%= cls %>"><%= a.action %></span>
+                </td>
+                <td><%= a.confidence == null ? '' : Number(a.confidence).toFixed(3) %></td>
+                <td><%= a.reason %></td>
+                <td><%= a.pi_host %></td>
+            </tr>
+        <% }) %>
+        </tbody>
+    </table>
+    <% } %>
+</section>
+
+<section class="card" style="border-color:var(--bad);">
+    <h2 style="color:var(--bad)">Erase all face data (GDPR)</h2>
+    <p class="muted">Deletes every saved photo, every audit record, and clears consent. The employee can still clock in normally with their badge.</p>
+    <form method="post" action="/faces/<%= encodeURIComponent(emp.empfullname) %>/erase"
+          onsubmit="return confirm('Permanently erase ALL face data for this employee?')">
+        <button type="submit" class="btn-danger">Erase all face data</button>
+    </form>
+</section>
+
+<script>
+(function () {
+    var startBtn = document.getElementById('startBtn');
+    var captureBtn = document.getElementById('captureBtn');
+    var stopBtn = document.getElementById('stopBtn');
+    var cameraBox = document.getElementById('cameraBox');
+    var cam = document.getElementById('cam');
+    var snap = document.getElementById('snap');
+    var status = document.getElementById('capStatus');
+    var stream = null;
+
+    startBtn.addEventListener('click', async function () {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: { width: 640, height: 480, facingMode: 'user' },
+                audio: false,
+            });
+            cam.srcObject = stream;
+            cameraBox.style.display = 'block';
+            captureBtn.disabled = false;
+            stopBtn.disabled = false;
+            startBtn.disabled = true;
+            status.textContent = 'Camera ready.';
+        } catch (e) {
+            status.textContent = 'Could not start camera: ' + e.message;
+        }
+    });
+
+    captureBtn.addEventListener('click', async function () {
+        if (!stream) return;
+        var ctx = snap.getContext('2d');
+        ctx.drawImage(cam, 0, 0, snap.width, snap.height);
+        snap.toBlob(async function (blob) {
+            status.textContent = 'Uploading…';
+            try {
+                var resp = await fetch(window.location.pathname + '/photo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'image/jpeg' },
+                    body: blob,
+                });
+                if (resp.ok) {
+                    status.textContent = 'Saved. Reloading…';
+                    setTimeout(function () { window.location.reload(); }, 600);
+                } else {
+                    status.textContent = 'Upload failed (' + resp.status + ').';
+                }
+            } catch (e) {
+                status.textContent = 'Upload error: ' + e.message;
+            }
+        }, 'image/jpeg', 0.85);
+    });
+
+    stopBtn.addEventListener('click', function () {
+        if (stream) {
+            stream.getTracks().forEach(function (t) { t.stop(); });
+            stream = null;
+        }
+        cameraBox.style.display = 'none';
+        captureBtn.disabled = true;
+        stopBtn.disabled = true;
+        startBtn.disabled = false;
+        status.textContent = 'Camera stopped.';
+    });
+})();
+</script>
+
+<%- include('../partials/foot') %>

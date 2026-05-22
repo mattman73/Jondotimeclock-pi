@@ -1,0 +1,43 @@
+<%- include('../partials/head') %>
+<header class="page-head">
+    <h1>Face recognition</h1>
+    <p class="muted">Manage which employees are enrolled in face recognition. Each employee must give explicit consent (the "Opt in" toggle) before the Pi scanner uses their data.</p>
+</header>
+
+<section class="card">
+<table class="data">
+    <thead>
+        <tr>
+            <th>Employee</th>
+            <th>Consent</th>
+            <th>Photos</th>
+            <th>Last captured</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    <% rows.forEach(function(r){ %>
+        <tr>
+            <td><strong><%= r.displayname || r.empfullname %></strong>
+                <br><span class="muted small"><%= r.empfullname %></span>
+            </td>
+            <td>
+                <% if (Number(r.face_opt_in)) { %>
+                    <span class="badge badge-good">Opted in</span>
+                    <% if (r.face_consent_at) { %>
+                        <br><span class="muted small">since <%= r.face_consent_at %></span>
+                    <% } %>
+                <% } else { %>
+                    <span class="badge badge-muted">Not opted in</span>
+                <% } %>
+            </td>
+            <td><%= r.photo_count %></td>
+            <td><%= r.last_capture || '<span class="muted">—</span>' %></td>
+            <td><a class="btn-small" href="/faces/<%= encodeURIComponent(r.empfullname) %>">Manage</a></td>
+        </tr>
+    <% }) %>
+    </tbody>
+</table>
+</section>
+
+<%- include('../partials/foot') %>

@@ -1,0 +1,76 @@
+<%- include('../partials/head') %>
+<header class="page-head">
+    <h1>Staff</h1>
+    <div>
+        <a href="/staff/new" class="btn-primary">+ Add staff</a>
+        <a href="/staff?show=<%= showDisabled ? 'active' : 'all' %>" class="btn-secondary">
+            <%= showDisabled ? 'Hide disabled' : 'Show disabled' %>
+        </a>
+    </div>
+</header>
+
+<section class="card">
+<table class="data">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Display name</th>
+            <th>Badge ID</th>
+            <th>Email</th>
+            <th>Group</th>
+            <th>Office</th>
+            <th>Roles</th>
+            <th>Schedule</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        <% if (!rows.length) { %>
+            <tr><td colspan="10" class="muted">No staff yet. <a href="/staff/new">Add the first one</a>.</td></tr>
+        <% } %>
+        <% rows.forEach(function(r){ %>
+            <tr>
+                <td><%= r.empfullname %></td>
+                <td><%= r.displayname %></td>
+                <td><%= r.employees_BadgeID || '' %></td>
+                <td><%= r.email || '' %></td>
+                <td><%= r.groups || '' %></td>
+                <td><%= r.office || '' %></td>
+                <td>
+                    <% if (Number(r.admin)) { %><span class="badge badge-good">admin</span> <% } %>
+                    <% if (Number(r.time_admin)) { %><span class="badge badge-warn">time_admin</span> <% } %>
+                    <% if (Number(r.reports)) { %><span class="badge badge-muted">reports</span><% } %>
+                </td>
+                <td>
+                    <% if (r.shift_start) { %>
+                        <%= r.shift_start %> &ndash; <%= r.shift_end %>
+                    <% } else { %>
+                        <a href="/schedules" class="muted">none</a>
+                    <% } %>
+                </td>
+                <td>
+                    <% if (Number(r.disabled)) { %>
+                        <span class="badge badge-bad">DISABLED</span>
+                    <% } else { %>
+                        <span class="badge badge-good">active</span>
+                    <% } %>
+                </td>
+                <td class="row-actions">
+                    <a href="/staff/<%= encodeURIComponent(r.empfullname) %>/edit" class="btn-small">Edit</a>
+                    <% if (Number(r.disabled)) { %>
+                        <form method="post" action="/staff/<%= encodeURIComponent(r.empfullname) %>/enable" style="display:inline">
+                            <button class="btn-small" type="submit">Enable</button>
+                        </form>
+                    <% } else { %>
+                        <form method="post" action="/staff/<%= encodeURIComponent(r.empfullname) %>/disable" style="display:inline" onsubmit="return confirm('Disable this user?')">
+                            <button class="btn-small" type="submit">Disable</button>
+                        </form>
+                    <% } %>
+                </td>
+            </tr>
+        <% }) %>
+    </tbody>
+</table>
+</section>
+<%- include('../partials/foot') %>

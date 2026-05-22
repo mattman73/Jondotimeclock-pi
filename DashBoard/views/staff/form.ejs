@@ -1,0 +1,86 @@
+<%- include('../partials/head') %>
+<header class="page-head">
+    <h1><%= title %></h1>
+    <a href="/staff" class="btn-secondary">Back to staff</a>
+</header>
+
+<section class="card">
+<form method="post" action="<%= isNew ? '/staff/new' : '/staff/' + encodeURIComponent(emp.empfullname) + '/edit' %>">
+    <div class="field-grid">
+        <label>
+            Username (login name)
+            <input type="text" name="empfullname" value="<%= emp.empfullname %>"
+                   <%= isNew ? 'required' : 'readonly' %>>
+        </label>
+        <label>
+            Display name
+            <input type="text" name="displayname" value="<%= emp.displayname || '' %>">
+        </label>
+        <label>
+            Email
+            <input type="email" name="email" value="<%= emp.email || '' %>">
+        </label>
+        <label>
+            Group
+            <input type="text" name="groups" value="<%= emp.groups || '' %>">
+        </label>
+        <label>
+            Office
+            <input type="text" name="office" value="<%= emp.office || '' %>">
+        </label>
+        <label>
+            Badge / ID number
+            <input type="text" name="employees_BadgeID"
+                   value="<%= emp.employees_BadgeID || '' %>"
+                   placeholder="e.g. 12345"
+                   autocomplete="off">
+        </label>
+        <label>
+            <%= isNew ? 'Initial password' : 'New password (leave blank to keep)' %>
+            <input type="password" name="password" <%= isNew ? 'required' : '' %> autocomplete="new-password">
+        </label>
+        <% if (!isNew) { %>
+        <label>
+            Annual holiday allowance (hours)
+            <input type="number" name="holiday_allowance_hours" step="0.5" min="0" max="2000"
+                   value="<%= emp.holiday_allowance_hours == null ? 224 : emp.holiday_allowance_hours %>">
+            <span class="muted small" style="display:block; margin-top:4px;">
+                Default 224 hours = 28 days at 8 hours per day.
+            </span>
+        </label>
+        <% } %>
+    </div>
+
+    <fieldset style="border:1px solid var(--border); padding:12px; border-radius:6px; margin-top:16px;">
+        <legend>Roles</legend>
+        <label style="font-weight:normal">
+            <input type="checkbox" name="admin" value="1" <%= Number(emp.admin) ? 'checked' : '' %>>
+            Admin (full access)
+        </label>
+        <label style="font-weight:normal">
+            <input type="checkbox" name="time_admin" value="1" <%= Number(emp.time_admin) ? 'checked' : '' %>>
+            Time admin (manage punches)
+        </label>
+        <label style="font-weight:normal">
+            <input type="checkbox" name="reports" value="1" <%= Number(emp.reports) ? 'checked' : '' %>>
+            Reports access
+        </label>
+    </fieldset>
+
+    <% if (!isNew) { %>
+    <fieldset style="border:1px solid var(--border); padding:12px; border-radius:6px; margin-top:16px;">
+        <legend>Status</legend>
+        <label style="font-weight:normal">
+            <input type="checkbox" name="disabled" value="1" <%= Number(emp.disabled) ? 'checked' : '' %>>
+            Disabled (cannot clock in or sign in)
+        </label>
+    </fieldset>
+    <% } %>
+
+    <div style="margin-top:16px; display:flex; gap:8px;">
+        <button type="submit" class="btn-primary"><%= isNew ? 'Create staff member' : 'Save changes' %></button>
+        <a href="/staff" class="btn-secondary">Cancel</a>
+    </div>
+</form>
+</section>
+<%- include('../partials/foot') %>

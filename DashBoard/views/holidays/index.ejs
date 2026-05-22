@@ -1,0 +1,75 @@
+<%- include('../partials/head') %>
+<header class="page-head">
+    <h1>Non-working days</h1>
+    <p class="muted">Bank holidays and any other days the office is closed.
+    These days don't count against employees' holiday allowance, and the
+    late-arrival alert engine doesn't fire on them.</p>
+</header>
+
+<section class="card">
+    <h2>Bulk add UK bank holidays</h2>
+    <form method="post" action="/holidays/bulk" style="display:flex; gap:8px; align-items:end; flex-wrap:wrap;">
+        <label>Year
+            <input type="number" name="year" min="2000" max="2100" required
+                   value="<%= currentYear %>" style="width:120px;">
+        </label>
+        <button type="submit" class="btn-primary">Add UK bank holidays</button>
+        <span class="muted small">
+            Covers England &amp; Wales. Re-running is safe (existing rows aren't overwritten).
+        </span>
+    </form>
+</section>
+
+<section class="card">
+    <h2>Add a single day</h2>
+    <form method="post" action="/holidays" style="display:flex; gap:8px; align-items:end; flex-wrap:wrap;">
+        <label>Date
+            <input type="date" name="holiday_date" required>
+        </label>
+        <label style="flex:1; min-width:200px;">Label (optional)
+            <input type="text" name="label" maxlength="80"
+                   placeholder="e.g. Christmas Eve, Training day">
+        </label>
+        <button type="submit" class="btn-primary">Add</button>
+    </form>
+</section>
+
+<section class="card">
+    <h2>Upcoming non-working days (from <%= currentYear %>)</h2>
+    <% if (!rows.length) { %>
+        <p class="muted">No non-working days set yet. Use one of the forms above.</p>
+    <% } else { %>
+    <table class="data">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Day</th>
+                <th>Label</th>
+                <th>Added by</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        <% rows.forEach(function(r){
+            var d = new Date(r.holiday_date);
+            var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        %>
+            <tr>
+                <td><%= r.holiday_date %></td>
+                <td><%= days[d.getDay()] %></td>
+                <td><%= r.label || '' %></td>
+                <td class="muted small"><%= r.created_by || '' %></td>
+                <td class="row-actions">
+                    <form method="post" action="/holidays/<%= r.holiday_date %>/delete"
+                          onsubmit="return confirm('Remove this non-working day?')">
+                        <button type="submit" class="btn-small">Remove</button>
+                    </form>
+                </td>
+            </tr>
+        <% }) %>
+        </tbody>
+    </table>
+    <% } %>
+</section>
+
+<%- include('../partials/foot') %>

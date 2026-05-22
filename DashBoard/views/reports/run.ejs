@@ -1,0 +1,36 @@
+<%- include('../partials/head') %>
+<header class="page-head">
+    <h1><%= title %></h1>
+    <a href="/reports" class="btn-secondary">All reports</a>
+</header>
+
+<form method="get" action="/reports/<%= reportKey %>" class="card toolbar">
+    <label>From <input type="date" name="from" value="<%= from %>"></label>
+    <label>To <input type="date" name="to" value="<%= to %>"></label>
+    <button type="submit" class="btn-primary">Run</button>
+    <a class="btn-secondary" href="/reports/<%= reportKey %>/export.xlsx?from=<%= from %>&to=<%= to %>">Excel</a>
+    <a class="btn-secondary" href="/reports/<%= reportKey %>/export.csv?from=<%= from %>&to=<%= to %>">CSV</a>
+</form>
+
+<section class="card">
+<table class="data">
+    <thead>
+        <tr>
+            <% columns.forEach(function(c){ %><th><%= c.header %></th><% }) %>
+        </tr>
+    </thead>
+    <tbody>
+        <% if (!data.length) { %>
+            <tr><td colspan="<%= columns.length %>" class="muted">No data in this range.</td></tr>
+        <% } %>
+        <% data.forEach(function(row){ %>
+            <tr>
+                <% columns.forEach(function(c){ %><td><%= row[c.key] %></td><% }) %>
+            </tr>
+        <% }) %>
+    </tbody>
+</table>
+<p class="muted small">Showing <%= data.length %> rows.</p>
+</section>
+
+<%- include('../partials/foot') %>

@@ -1,0 +1,91 @@
+<%- include('../partials/head') %>
+<header class="page-head">
+    <h1>Time-off requests</h1>
+    <p class="muted">Approve or reject pending requests. Decisions email the employee.</p>
+</header>
+
+<section class="card">
+    <h2>Pending (<%= pending.length %>)</h2>
+    <% if (!pending.length) { %>
+        <p class="muted">No pending requests.</p>
+    <% } else { %>
+    <% pending.forEach(function(r){ %>
+        <div style="border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 12px;">
+            <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <strong style="font-size:16px;"><%= r.displayname %></strong>
+                    <span class="muted small">(<%= r.empfullname %>)</span>
+                    &nbsp;&middot;&nbsp;
+                    <span class="badge badge-warn"><%= r.request_type %></span>
+                </div>
+                <div class="muted small">submitted <%= r.submitted_at %></div>
+            </div>
+            <div style="margin-top: 8px;">
+                <strong><%= r.start_datetime %></strong> &rarr; <strong><%= r.end_datetime %></strong>
+                &nbsp;<span class="muted">(<%= Number(r.hours_requested).toFixed(1) %> hours)</span>
+            </div>
+            <% if (r.reason) { %>
+                <div class="muted" style="margin-top:6px;"><em>"<%= r.reason %>"</em></div>
+            <% } %>
+            <form method="post" action="" style="margin-top: 10px; display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;">
+                <label style="flex:1; min-width:240px; font-size:12px;">Note (optional, sent to employee)
+                    <input type="text" name="review_note" maxlength="500" placeholder="e.g. cover arranged">
+                </label>
+                <button type="submit" formaction="/timeoff/<%= r.id %>/approve" class="btn-primary">Approve</button>
+                <button type="submit" formaction="/timeoff/<%= r.id %>/reject"  class="btn-danger">Reject</button>
+            </form>
+        </div>
+    <% }) %>
+    <% } %>
+</section>
+
+<section class="card">
+    <h2>Recent decisions</h2>
+    <% if (!history.length) { %>
+        <p class="muted">No history yet.</p>
+    <% } else { %>
+    <table class="data">
+        <thead>
+            <tr>
+                <th>Employee</th>
+                <th>Type</th>
+                <th>Dates</th>
+                <th>Hours</th>
+                <th>Status</th>
+                <th>Decided</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+        <% history.forEach(function(r){ %>
+            <tr>
+                <td><%= r.displayname %><br><span class="muted small"><%= r.empfullname %></span></td>
+                <td><%= r.request_type %></td>
+                <td><%= r.start_datetime %><br><span class="muted small">to <%= r.end_datetime %></span></td>
+                <td><%= Number(r.hours_requested).toFixed(1) %></td>
+                <td>
+                    <% var cls = r.status === 'approved' ? 'badge-good' :
+                                 r.status === 'rejected' ? 'badge-bad'  : 'badge-muted'; %>
+                    <span class="badge <%= cls %>"><%= r.status %></span>
+                </td>
+                <td class="small">
+                    <%= r.reviewed_at %>
+                    <% if (r.reviewed_by) { %><br>by <%= r.reviewed_by %><% } %>
+                    <% if (r.review_note) { %><br><em><%= r.review_note %></em><% } %>
+                </td>
+                <td>
+                    <% if (r.status === 'approved') { %>
+                        <form method="post" action="/timeoff/<%= r.id %>/cancel"
+                              onsubmit="return confirm('Cancel this approved time off? The employee will be emailed.');">
+                            <button type="submit" class="btn-danger">Cancel</button>
+                        </form>
+                    <% } %>
+                </td>
+            </tr>
+        <% }) %>
+        </tbody>
+    </table>
+    <% } %>
+</section>
+
+<%- include('../partials/foot') %>

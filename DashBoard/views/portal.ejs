@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/static/css/kiosk.css">
+</head>
+<body class="kiosk">
+<header class="kiosk-head">
+    <div class="brand">
+        <img src="/static/img/jondo-logo.png" alt="Jondo" class="brand-logo">
+        <span class="brand-text">My portal</span>
+    </div>
+    <div style="display:flex; gap:14px; align-items:center;">
+        <span style="color: var(--jondo-grey)"><%= me.displayname %></span>
+        <a href="/logout" style="color: var(--jondo-blue); text-decoration: underline;">Sign out</a>
+    </div>
+</header>
+
+<main class="kiosk-main centered" style="align-items: flex-start;">
+    <div class="pw-card" style="max-width: 720px;">
+        <h1>Hello, <%= me.displayname %></h1>
+
+        <% if (success && success.length) success.forEach(function(m){ %>
+            <div class="kiosk-flash ok"><%= m %></div>
+        <% }) %>
+        <% if (error && error.length) error.forEach(function(m){ %>
+            <div class="kiosk-flash err"><%= m %></div>
+        <% }) %>
+
+        <section style="margin-top: 18px;">
+            <h2 style="font-size:18px; margin:0 0 8px;">Holiday allowance</h2>
+            <div style="display:flex; gap:18px; flex-wrap:wrap;">
+                <div><strong style="font-size:24px; color: var(--jondo-blue);"><%= allowance.remainingDays %></strong>
+                    <div style="font-size:12px; color: var(--jondo-grey);">DAYS LEFT</div></div>
+                <div><strong style="font-size:24px;"><%= allowance.usedDays %></strong>
+                    <div style="font-size:12px; color: var(--jondo-grey);">USED</div></div>
+                <div><strong style="font-size:24px; color: var(--jondo-yellow-dark);"><%= allowance.pendingDays %></strong>
+                    <div style="font-size:12px; color: var(--jondo-grey);">PENDING</div></div>
+                <div><strong style="font-size:24px; color: var(--jondo-grey);"><%= allowance.allowanceDays %></strong>
+                    <div style="font-size:12px; color: var(--jondo-grey);">TOTAL ANNUAL</div></div>
+            </div>
+        </section>
+
+        <section style="margin-top: 24px; display:flex; gap:12px; flex-wrap:wrap;">
+            <a href="/timeoff/new" class="kiosk-btn">Book time off</a>
+            <a href="/timeoff/mine" class="kiosk-btn" style="background: var(--jondo-grey-light); color: var(--jondo-black);">My requests<% if (pendingCount) { %> (<%= pendingCount %> pending)<% } %></a>
+        </section>
+
+        <% if (recent && recent.length) { %>
+        <section style="margin-top: 24px;">
+            <h2 style="font-size:18px; margin:0 0 8px;">Recent requests</h2>
+            <ul style="list-style:none; padding:0; margin:0;">
+            <% recent.forEach(function(r){ %>
+                <li style="border-bottom: 1px solid var(--jondo-grey-light); padding: 8px 0;">
+                    <strong><%= r.request_type %></strong>
+                    &mdash; <%= r.start_datetime %> to <%= r.end_datetime %>
+                    &mdash; <span style="color: <%= r.status === 'approved' ? 'var(--jondo-good)' : r.status === 'rejected' ? 'var(--jondo-red)' : 'var(--jondo-grey)' %>; font-weight:600; text-transform:uppercase;"><%= r.status %></span>
+                </li>
+            <% }) %>
+            </ul>
+        </section>
+        <% } %>
+    </div>
+</main>
+</body>
+</html>

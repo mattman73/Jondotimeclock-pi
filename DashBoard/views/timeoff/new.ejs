@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/static/css/kiosk.css">
+</head>
+<body class="kiosk">
+<header class="kiosk-head">
+    <div class="brand">
+        <img src="/static/img/jondo-logo.png" alt="Jondo" class="brand-logo">
+        <span class="brand-text">Book time off</span>
+    </div>
+    <a href="/portal" style="color: var(--jondo-blue); text-decoration: underline;">&larr; Back</a>
+</header>
+
+<main class="kiosk-main centered" style="align-items: flex-start;">
+    <div class="pw-card" style="max-width: 560px;">
+        <h1>New time-off request</h1>
+        <p class="hint">You have <strong><%= allowance.remainingDays %></strong> days of holiday remaining this year.</p>
+
+        <% if (error && error.length) error.forEach(function(m){ %>
+            <div class="kiosk-flash err"><%= m %></div>
+        <% }) %>
+
+        <form method="post" action="/timeoff/new" autocomplete="off">
+            <label>Type
+                <select name="request_type" required>
+                    <option value="holiday">Holiday / annual leave</option>
+                    <option value="sick">Sick leave</option>
+                    <option value="appointment">Appointment</option>
+                    <option value="compassionate">Compassionate / personal</option>
+                </select>
+            </label>
+            <label>Start
+                <input type="datetime-local" name="start_datetime" required>
+            </label>
+            <label>End
+                <input type="datetime-local" name="end_datetime" required>
+            </label>
+            <label>Reason (optional)
+                <input type="text" name="reason" maxlength="500"
+                       placeholder="e.g. annual family holiday">
+            </label>
+            <button type="submit" class="kiosk-btn">Submit request</button>
+        </form>
+
+        <p class="hint" style="margin-top:18px;">
+            Holiday must be requested in advance (your admin sets the notice period).
+            Sick / appointment / compassionate leave can be requested for any date.
+            Hours are counted Mon&ndash;Fri, 09:00&ndash;17:00 by default.
+        </p>
+    </div>
+</main>
+</body>
+</html>

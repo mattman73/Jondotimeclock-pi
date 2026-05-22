@@ -1,0 +1,231 @@
+/* Jondo Time Clock dashboard — minimal, light theme. */
+
+:root {
+    --bg: #f5f6f8;
+    --card: #ffffff;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --primary: #2563eb;
+    --primary-dark: #1e40af;
+    --good: #10b981;
+    --warn: #f59e0b;
+    --bad: #dc2626;
+    --bad-bg: #fee2e2;
+    --good-bg: #d1fae5;
+    --warn-bg: #fef3c7;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Top nav */
+.topnav {
+    background: #111827;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    height: 56px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.topnav .brand {
+    font-weight: 700;
+    font-size: 16px;
+    margin-right: 32px;
+}
+.topnav ul {
+    list-style: none;
+    margin: 0; padding: 0;
+    display: flex;
+    gap: 4px;
+    flex: 1;
+}
+.topnav ul a {
+    color: #d1d5db;
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    display: block;
+}
+.topnav ul a:hover { background: #1f2937; color: #fff; }
+.topnav ul a.active { background: var(--primary); color: #fff; }
+.topnav .user {
+    display: flex; align-items: center; gap: 12px;
+    color: #d1d5db;
+}
+.topnav .user a { color: #fff; text-decoration: underline; }
+
+.container {
+    max-width: 1200px;
+    margin: 24px auto;
+    padding: 0 24px;
+}
+
+.page-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+.page-head h1 { margin: 0; font-size: 24px; }
+
+.counters {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.counter {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    min-width: 90px;
+    text-align: center;
+}
+.counter .num { display: block; font-size: 22px; font-weight: 700; }
+.counter .lbl { display: block; font-size: 12px; color: var(--muted); text-transform: uppercase; }
+.counter-alert { border-color: var(--bad); background: var(--bad-bg); }
+.counter-alert .num { color: var(--bad); }
+
+/* Cards */
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+.card h2 { margin-top: 0; font-size: 16px; }
+
+/* Tables */
+table.data {
+    width: 100%;
+    border-collapse: collapse;
+}
+table.data th, table.data td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+}
+table.data th {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: #fafafa;
+}
+table.data tr.row-alert { background: var(--bad-bg); }
+table.data tr:hover { background: #f9fafb; }
+table.data tr.row-alert:hover { background: #fecaca; }
+
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.badge-good { background: var(--good-bg); color: #065f46; }
+.badge-warn { background: var(--warn-bg); color: #92400e; }
+.badge-muted { background: #f3f4f6; color: #4b5563; }
+.badge-bad { background: var(--bad); color: #fff; }
+
+/* Forms */
+form label {
+    display: block;
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+form input[type=text], form input[type=email], form input[type=password],
+form input[type=time], form input[type=date], form input[type=number],
+form select, form textarea {
+    width: 100%;
+    padding: 8px 10px;
+    margin-top: 4px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+    background: #fff;
+}
+form input[type=checkbox] { margin-right: 6px; }
+
+.btn-primary, .btn-secondary, .btn-danger, .btn-small {
+    display: inline-block;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+}
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-secondary { background: #e5e7eb; color: #1f2937; }
+.btn-secondary:hover { background: #d1d5db; }
+.btn-danger { background: var(--bad); color: #fff; }
+.btn-small { background: #f3f4f6; color: #1f2937; padding: 4px 10px; font-size: 12px; }
+.btn-small:hover { background: #e5e7eb; }
+
+/* Login */
+.login-card {
+    max-width: 360px;
+    margin: 80px auto;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 32px;
+}
+.login-card h1 { margin: 0 0 4px; font-size: 22px; }
+.login-card .subtitle { color: var(--muted); margin: 0 0 24px; }
+.login-card .hint { color: var(--muted); font-size: 12px; margin-top: 16px; }
+.login-card button { width: 100%; margin-top: 8px; }
+
+/* Flash messages */
+.flash {
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+}
+.flash-success { background: var(--good-bg); color: #065f46; border: 1px solid #6ee7b7; }
+.flash-error   { background: var(--bad-bg);  color: #991b1b; border: 1px solid #fca5a5; }
+
+/* Misc */
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.feed { list-style: none; padding: 0; margin: 0; }
+.feed li { padding: 6px 0; border-bottom: 1px solid var(--border); }
+.feed .when { display: inline-block; min-width: 140px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: end;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+.toolbar label { margin-bottom: 0; }
+
+.row-actions { display: flex; gap: 6px; }
+
+.field-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+@media (max-width: 600px) {
+    .field-grid { grid-template-columns: 1fr; }
+}

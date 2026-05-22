@@ -1,0 +1,50 @@
+<%- include('partials/head') %>
+<header class="page-head">
+    <h1>Schedules</h1>
+    <p class="muted">Set the expected shift start &amp; working days for each employee. Late-arrival alerts only fire for employees with a schedule and "Active" ticked.</p>
+</header>
+
+<form method="post" action="/schedules">
+<section class="card">
+<table class="data">
+    <thead>
+        <tr>
+            <th>Employee</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Grace (min)</th>
+            <th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th>
+            <th>Active</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% rows.forEach(function(r){
+            var d = r.workdays.padEnd(7,'0');
+        %>
+        <tr>
+            <td>
+                <strong><%= r.displayname %></strong>
+                <input type="hidden" name="emp[]" value="<%= r.empfullname %>">
+                <br><span class="muted small"><%= r.empfullname %></span>
+            </td>
+            <td><input type="time" name="shift_start[]" value="<%= r.shift_start %>"></td>
+            <td><input type="time" name="shift_end[]" value="<%= r.shift_end %>"></td>
+            <td><input type="number" name="grace_minutes[]" min="0" max="240" value="<%= r.grace_minutes %>" style="width:80px"></td>
+            <% ['mon','tue','wed','thu','fri','sat','sun'].forEach(function(dk, idx){ %>
+                <td style="text-align:center">
+                    <input type="checkbox" name="day_<%= r.empfullname %>_<%= dk %>" value="1" <%= d[idx] === '1' ? 'checked' : '' %>>
+                </td>
+            <% }) %>
+            <td style="text-align:center">
+                <input type="checkbox" name="active_map[<%= r.empfullname %>]" value="1" <%= r.active ? 'checked' : '' %>>
+            </td>
+        </tr>
+        <% }) %>
+    </tbody>
+</table>
+</section>
+<button type="submit" class="btn-primary">Save schedules</button>
+<a href="/dashboard" class="btn-secondary">Cancel</a>
+</form>
+
+<%- include('partials/foot') %>
