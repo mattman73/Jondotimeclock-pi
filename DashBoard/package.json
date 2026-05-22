@@ -1,0 +1,28 @@
+{
+  "name": "jondo-timeclock-dashboard",
+  "version": "1.0.0",
+  "description": "Node.js admin dashboard for the Jondo Time Clock (staff management, reports, late-arrival alerts).",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "migrate": "node scripts/migrate.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "connect-flash": "^0.1.1",
+    "csv-stringify": "^6.5.0",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "exceljs": "^3.4.0",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "mysql2": "^3.10.0",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^8.0.7",
+    "unix-crypt-td-js": "^1.1.4"
+  }
+}
