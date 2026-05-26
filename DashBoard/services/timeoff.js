@@ -28,7 +28,7 @@ function isValidType(type) {
 async function loadSettings() {
     const rows = await query(
         `SELECT min_holiday_notice_days, standard_workday_hours,
-                timeoff_notify_email, manager_email
+                timeoff_notify_email, manager_email, dashboard_base_url
          FROM ${t('alert_settings')} WHERE id = 1`
     );
     return rows[0] || {
@@ -36,6 +36,7 @@ async function loadSettings() {
         standard_workday_hours: 8,
         timeoff_notify_email: '',
         manager_email: '',
+        dashboard_base_url: '',
     };
 }
 

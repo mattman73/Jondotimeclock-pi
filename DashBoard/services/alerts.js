@@ -5,12 +5,14 @@
 // ago today, checks whether they have an "in" punch yet today. If
 // not, AND they're not on approved time off, AND today isn't a
 // company-wide non-working day, AND we haven't already alerted
-// today, write an alerts_log row and send the configured emails.
+// today, write an alerts_log row and send the configured emails
+// (and a WhatsApp message, if WhatsApp is enabled).
 
 const cron = require('node-cron');
 const { query, t } = require('../db');
 const { sendMail, loadSettings } = require('./mailer');
 const { sendWhatsApp } = require('./whatsapp');
+const { dashboardUrl } = require('./notifyUrl');
 const {
     todayYmd, startOfDayEpoch, endOfDayEpoch, buildLocal, workdayIndex,
 } = require('./timeUtils');
@@ -68,6 +70,7 @@ async function runOnce() {
     const onLeave = new Set(onLeaveRows.map(r => r.empfullname));
 
     const settings = await loadSettings();
+    const dashLink = dashboardUrl(settings, '/dashboard');
     let alerted = 0;
 
     for (const emp of employees) {
@@ -100,7 +103,7 @@ async function runOnce() {
 `${emp.displayname || emp.empfullname} was scheduled to start at ${emp.shift_start} today (${today})
 and has not yet clocked in. Currently ${minutesPast} minutes past the expected start time.
 
-Open the dashboard: http://localhost:${process.env.PORT || 3000}/dashboard`;
+Open the dashboard: ${dashLink}`;
 
         if (settings && Number(settings.notify_manager) && settings.manager_email) {
             const r = await sendMail({ to: settings.manager_email, subject, text: body });
@@ -111,7 +114,8 @@ Open the dashboard: http://localhost:${process.env.PORT || 3000}/dashboard`;
         try {
             await sendWhatsApp(
                 `${emp.displayname || emp.empfullname} has not clocked in `
-                + `— ${minutesPast} min past their ${emp.shift_start} start (${today}).`,
+                + `— ${minutesPast} min past their ${emp.shift_start} start (${today}). `
+                + `Review: ${dashLink}`,
                 settings
             );
         } catch (e) {
